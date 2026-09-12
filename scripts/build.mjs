@@ -1,0 +1,12 @@
+import { build } from 'esbuild';
+import fs from 'node:fs';
+fs.mkdirSync('dist/assets', { recursive: true });
+await build({ entryPoints: ['frontend/src/main.js'], outfile: 'dist/assets/app.js', bundle: true, minify: true, sourcemap: true, format: 'esm', target: ['es2022'], legalComments: 'linked' });
+const componentCss = fs.existsSync('dist/assets/app.css') ? fs.readFileSync('dist/assets/app.css', 'utf8') : '';
+fs.writeFileSync('dist/assets/app.css', fs.readFileSync('frontend/styles.css', 'utf8') + '\n' + componentCss);
+fs.copyFileSync('favicon.svg', 'dist/favicon.svg');
+fs.copyFileSync('frontend/index.html', 'dist/index.html');
+if (fs.existsSync('frontend/public')) fs.cpSync('frontend/public', 'dist', { recursive: true });
+fs.copyFileSync('frontend/reader/index.html', 'dist/reference/ba-luoi-riu.html');
+await build({ entryPoints: ['frontend/reader/main.js'], outfile: 'dist/reference/reader.js', bundle: true, minify: true, format: 'iife', target: ['es2022'], legalComments: 'linked' });
+console.log('Frontend built into dist/.');

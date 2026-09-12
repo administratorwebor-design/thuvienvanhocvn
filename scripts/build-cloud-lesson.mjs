@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+const out='frontend/public/reference/may-va-song';
+const cloud=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})" fill="#fff" opacity=".9"><ellipse rx="95" ry="30"/><circle cx="-40" cy="-22" r="35"/><circle cx="15" cy="-40" r="48"/><circle cx="65" cy="-15" r="32"/></g>`;
+const person=(x,y,s=1,mother=false)=>`<g transform="translate(${x} ${y}) scale(${s})"><path d="M-40 10 Q-65 -85 0 -92 Q65 -82 42 15" fill="#29364a"/><path d="M-48 135 Q-50 12 0 8 Q50 12 48 135Z" fill="${mother?'#cb735f':'#e6b954'}"/><circle cy="-30" r="34" fill="#f5c9a1"/><path d="M-34 -45 Q-24 -85 15 -64 L35 -40 Q3 -44 -4 -65 Q-13 -44 -34 -45" fill="#29364a"/><circle cx="-12" cy="-27" r="3"/><circle cx="12" cy="-27" r="3"/><path d="M-7 -12 Q0 -6 8 -13" fill="none" stroke="#a9614e" stroke-width="3" stroke-linecap="round"/><path d="M-33 35 Q-85 55 -75 90 M34 35 Q74 62 78 87" fill="none" stroke="#f5c9a1" stroke-width="16" stroke-linecap="round"/></g>`;
+const waves=(color,y)=>`<path d="M0 ${y} Q70 ${y-55} 140 ${y} T280 ${y} T420 ${y} T560 ${y} T700 ${y} V600 H0Z" fill="${color}"/>`;
+const stars=Array.from({length:20},(_,i)=>`<circle cx="${(i*137+35)%600}" cy="${(i*79+30)%350}" r="${i%3+2}" fill="#ffe6a0"/>`).join('');
+const scenes=[
+['#b9dcee',`<circle cx="470" cy="105" r="57" fill="#ffe3a0"/>${cloud(125,100,.85)}${cloud(435,235,.7)}${waves('#6dafbf',420)}${waves('#397d96',490)}<path d="M0 520 Q270 370 600 520 V600 H0" fill="#f5deae"/>${person(340,395,1,true)}${person(240,441,.65)}`],
+['#20345f',`${stars}<circle cx="445" cy="95" r="58" fill="#ffe6a0"/><circle cx="467" cy="77" r="51" fill="#20345f"/>${cloud(130,190,1)}${cloud(450,350,1.1)}${cloud(140,510,1.3)}<path d="M120 430 Q310 360 380 185" fill="none" stroke="#a6c4e4" stroke-dasharray="9 12" stroke-width="4"/>${person(415,279,.5)}`],
+['#c6ebe7',`<circle cx="470" cy="115" r="65" fill="#ffe7a3"/>${cloud(160,110,.8)}<path d="M275 320 L385 320 L350 355 L300 355Z" fill="#955f51"/><path d="M330 315 V185 L390 295 H335" fill="#fff9e9" stroke="#955f51" stroke-width="4"/>${waves('#80c8c4',365)}${waves('#4aabae',430)}${waves('#217b8f',515)}`],
+['#f4d5ad',`<path d="M50 600 V170 L300 35 L550 170 V600" fill="#fff2db"/><rect x="100" y="170" width="150" height="150" rx="70" fill="#bad8df"/>${cloud(170,235,.5)}<path d="M60 525 Q320 475 550 525 V600 H60" fill="#d9a77b"/>${person(355,355,1.35,true)}${person(245,421,.77)}<path d="M305 388 Q210 355 217 431" fill="none" stroke="#f5c9a1" stroke-width="20" stroke-linecap="round"/>`],
+['#dbd2ed',`<path d="M300 0H600V600H300" fill="#acd7df"/><circle cx="145" cy="160" r="67" fill="#ffedb6"/>${cloud(145,300,1.15)}${waves('#62aebe',460)}${waves('#35869f',535)}<path d="M335 0 Q380 180 335 340 T335 600" fill="none" stroke="#fff8e9" stroke-width="9"/>${person(470,320,.9,true)}${person(440,390,.5)}`],
+['#f4eacb',`<circle cx="325" cy="260" r="215" fill="#e7d9b0"/><path d="M65 170 Q170 120 300 180 Q420 120 535 170 V440 Q420 390 300 450 Q165 390 65 440Z" fill="#fffcf1" stroke="#af9871" stroke-width="5"/><path d="M300 180V450" stroke="#af9871" stroke-width="4"/>${cloud(180,240,.55)}<path d="M355 265 Q385 225 415 265 T475 265 M355 305 Q385 265 415 305 T475 305" fill="none" stroke="#76b8c2" stroke-width="7"/><path d="M110 345H245 M110 375H220 M355 355H480 M355 385H460" stroke="#d0bd94" stroke-width="7" stroke-linecap="round"/>`],
+['#dce7c7',`<circle cx="160" cy="130" r="70" fill="#fbefb8"/><path d="M0 475 Q250 370 600 470 V600H0" fill="#a7bd8a"/><path d="M95 380H510V420H95Z M140 420V560 M465 420V560" fill="#a98561"/>${person(355,275,.95,true)}${person(205,311,.66)}<path d="M215 375 Q280 345 345 375 L335 420 Q280 400 225 420Z" fill="#fff8e9"/><path d="M280 365V412" stroke="#bfaa88" stroke-width="3"/>`]
+];
+scenes.forEach(([bg,art],i)=>fs.writeFileSync(`${out}/art-${i+1}.svg`,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><rect width="600" height="600" fill="${bg}"/>${art}</svg>`));
+const js=fs.readFileSync(`${out}/lesson.js`,'utf8');
+const slides=vm.runInNewContext(js.slice(0,js.indexOf('const questions='))+';slides');
+fs.writeFileSync(`${out}/narration.json`,JSON.stringify(slides.map(s=>s.speech)));
+console.log('Seven distinct SVG illustrations and narration scripts generated.');

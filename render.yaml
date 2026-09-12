@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: thu-vien-so-van-hoc
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm ci --prefix backend --omit=dev && npm run build
+    startCommand: npm run start:render
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 24
+      - key: LOAD_ENV
+        value: "false"
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: SEED_DEMO
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash

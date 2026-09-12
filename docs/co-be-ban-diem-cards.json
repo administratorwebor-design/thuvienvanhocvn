@@ -1,0 +1,45 @@
+{
+  "provider": "gemini",
+  "cards": [
+    {
+      "front": "Tên tác phẩm được nhắc đến trong bài là gì?",
+      "back": "Cô bé bán diêm"
+    },
+    {
+      "front": "Ai là tác giả của truyện Cô bé bán diêm?",
+      "back": "Han Cri-xti-an An-đéc-xen"
+    },
+    {
+      "front": "Truyện Cô bé bán diêm được kể ở ngôi thứ mấy?",
+      "back": "Ngôi thứ ba"
+    },
+    {
+      "front": "Em bé bán diêm phải đi bán diêm trong hoàn cảnh nào?",
+      "back": "Đêm giao thừa rét buốt, đầu trần, chân đất"
+    },
+    {
+      "front": "Tại sao em bé bán diêm không dám về nhà?",
+      "back": "Vì sợ cha đánh"
+    },
+    {
+      "front": "Khi em bé quẹt diêm, những hình ảnh nào lần lượt hiện ra?",
+      "back": "Lò sưởi, bàn ăn có ngỗng quay, cây thông Nô-en, người bà"
+    },
+    {
+      "front": "Những hình ảnh trong ánh diêm thể hiện mong ước gì của em bé?",
+      "back": "Được sưởi ấm, ăn no, vui chơi, yêu thương"
+    },
+    {
+      "front": "Khi diêm tắt, điều gì xảy ra với em bé?",
+      "back": "Hiện thực đói rét trở lại"
+    },
+    {
+      "front": "Kết cục của em bé bán diêm là gì?",
+      "back": "Em đã chết vì giá rét"
+    },
+    {
+      "front": "Câu chuyện Cô bé bán diêm gợi cho người đọc điều gì?",
+      "back": "Niềm thương cảm, biết yêu thương, sẻ chia, tránh thờ ơ"
+    }
+  ]
+}

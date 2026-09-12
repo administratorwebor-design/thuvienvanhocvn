@@ -1,0 +1,45 @@
+{
+  "provider": "gemini",
+  "cards": [
+    {
+      "front": "Văn bản Bài học đường đời đầu tiên trích từ tác phẩm nào và của tác giả nào?",
+      "back": "Dế Mèn phiêu lưu kí, Tô Hoài"
+    },
+    {
+      "front": "Văn bản Bài học đường đời đầu tiên thuộc thể loại truyện gì?",
+      "back": "Truyện đồng thoại"
+    },
+    {
+      "front": "Câu chuyện Bài học đường đời đầu tiên được kể bằng ngôi thứ mấy?",
+      "back": "Ngôi thứ nhất"
+    },
+    {
+      "front": "Dế Mèn lúc đầu được khắc họa như thế nào?",
+      "back": "Khỏe mạnh, tự hào vẻ ngoài nhưng kiêu căng, xốc nổi"
+    },
+    {
+      "front": "Dế Choắt có đặc điểm ngoại hình và nơi sống như thế nào?",
+      "back": "Gầy yếu, sống trong hang nông"
+    },
+    {
+      "front": "Dế Choắt đã đề nghị Dế Mèn điều gì để tránh nguy hiểm?",
+      "back": "Đào ngách thông sang hang Dế Mèn"
+    },
+    {
+      "front": "Hành động nào của Dế Mèn đã dẫn đến tai họa cho Dế Choắt?",
+      "back": "Trêu chọc chị Cốc"
+    },
+    {
+      "front": "Trước khi chết, Dế Choắt đã khuyên Dế Mèn điều gì?",
+      "back": "Không nên hung hăng bậy bạ, làm việc phải suy nghĩ"
+    },
+    {
+      "front": "Bài học chính mà câu chuyện Bài học đường đời đầu tiên muốn gửi gắm là gì?",
+      "back": "Sống khiêm tốn, biết quan tâm người khác, chịu trách nhiệm hành động"
+    },
+    {
+      "front": "Những nét nghệ thuật nổi bật của văn bản là gì?",
+      "back": "Nhân hóa, miêu tả ngoại hình gắn với tính cách, ngôi kể thứ nhất"
+    }
+  ]
+}

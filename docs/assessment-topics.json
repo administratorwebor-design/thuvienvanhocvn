@@ -1,0 +1,22 @@
+[
+  {"id":"de-men","title":"Bài học đường đời đầu tiên","category":"Truyện đồng thoại","pages":[12,13,14,15,16,17,18,19]},
+  {"id":"nguoi-ban","title":"Nếu cậu muốn có một người bạn","category":"Truyện","pages":[21,22,23,24,25]},
+  {"id":"bat-nat","title":"Bắt nạt","category":"Thơ","pages":[27,28]},
+  {"id":"tu-don-tu-phuc","title":"Từ đơn, từ ghép và từ láy","category":"Tiếng Việt","pages":[11,20,26]},
+  {"id":"co-tich-loai-nguoi","title":"Chuyện cổ tích về loài người","category":"Thơ","pages":[40,41,42,43]},
+  {"id":"may-va-song","title":"Mây và sóng","category":"Thơ","pages":[44,45,46]},
+  {"id":"buc-tranh","title":"Bức tranh của em gái tôi","category":"Truyện","pages":[48,49,50,51]},
+  {"id":"so-sanh-nhan-hoa","title":"So sánh và nhân hóa","category":"Tiếng Việt","pages":[43,47,99]},
+  {"id":"ban-diem","title":"Cô bé bán diêm","category":"Truyện","pages":[61,62,63,64,65,66]},
+  {"id":"gio-lanh","title":"Gió lạnh đầu mùa","category":"Truyện","pages":[67,68,69,70,71,72,73]},
+  {"id":"chao-mao","title":"Con chào mào","category":"Thơ","pages":[75,76]},
+  {"id":"cum-danh-tu","title":"Cụm danh từ và mở rộng câu","category":"Tiếng Việt","pages":[66,74]},
+  {"id":"ca-dao","title":"Chùm ca dao về quê hương đất nước","category":"Thơ lục bát","pages":[90,91,92]},
+  {"id":"chuyen-co","title":"Chuyện cổ nước mình","category":"Thơ lục bát","pages":[93,94]},
+  {"id":"cay-tre","title":"Cây tre Việt Nam","category":"Kí","pages":[95,96,97,98]},
+  {"id":"luc-bat","title":"Vần, nhịp và cách viết thơ lục bát","category":"Thơ lục bát","pages":[89,90,91,100,101]},
+  {"id":"co-to","title":"Cô Tô","category":"Kí","pages":[110,111,112,113]},
+  {"id":"hang-en","title":"Hang Én","category":"Kí","pages":[114,115,116,117,118]},
+  {"id":"cuu-long","title":"Cửu Long Giang ta ơi","category":"Thơ","pages":[119,120,121]},
+  {"id":"trai-nghiem","title":"Kể lại một trải nghiệm của em","category":"Viết và nói","pages":[28,29,30,31,32,77,78,79,80,81,82]}
+]
