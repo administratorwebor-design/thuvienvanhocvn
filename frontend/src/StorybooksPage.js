@@ -1,6 +1,7 @@
 // Recovered from the surviving frontend bundle; local variable names are not original.
 import { vp, React, useQuery, apiClient, jsxRuntime, Ld, Rd, Ke, nn, Link, Vl, Ss } from './runtime.js';
 import { useCategories } from './useCategories.js';
+import { MaterialCard } from './MaterialActions.jsx';
 function StorybooksPage() {
   const [t, e] = vp(),
     [n, i] = React.useState(t.get("search") || ""),
@@ -97,7 +98,8 @@ function StorybooksPage() {
       })]
     }) : jsxRuntime.jsx("div", {
       className: "grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6",
-      children: x?.map(w => jsxRuntime.jsxs(Link, {
+      children: x?.map(w => jsxRuntime.jsxs(MaterialCard, {
+        kind: 'storybooks', item: w,
         to: `/storybooks/${w._id}`,
         className: "bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition group",
         children: [jsxRuntime.jsxs("div", {

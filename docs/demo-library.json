@@ -74,7 +74,7 @@
     },
     {
       "_id": "demo-ai-literature",
-      "name": "Hoạt hình văn học",
+      "name": "Video minh họa văn học",
       "order": 10
     }
   ],
@@ -129,6 +129,46 @@
       "order": -1,
       "aiText": "Một người tiều phu nghèo làm rơi chiếc rìu sắt xuống sông. Ông cụ giúp anh tìm lại rìu, lần lượt đưa lên rìu bạc, rìu vàng rồi rìu sắt. Anh không nhận rìu vàng và bạc vì không phải của mình. Khi thấy chiếc rìu sắt, anh nhận ra ngay. Ông cụ khen lòng trung thực và tặng anh cả ba chiếc rìu. Câu chuyện ca ngợi lòng trung thực và khuyên con người không tham lam.",
       "chatEnabled": true
+    },
+    {
+      "_id": "storybook-gio-lanh-dau-mua",
+      "title": "GIÓ LẠNH ĐẦU MÙA",
+      "description": "Một chiếc áo nhỏ, một tấm lòng ấm. Storybook minh họa theo truyện của Thạch Lam.",
+      "category": "reference-literature-6",
+      "author": "Thạch Lam · Bản kể tóm lược",
+      "type": "heyzine",
+      "url": "/reference/gio-lanh-dau-mua/index.html",
+      "fileUrl": "",
+      "thumbnail": "/reference/gio-lanh-dau-mua/01.png",
+      "order": 0,
+      "aiText": "Gió lạnh đầu mùa: Phỏng theo truyện của Thạch Lam\nMột câu chuyện về tình yêu thương và sự sẻ chia.\n\nCơn gió đầu mùa: Gió lạnh bất chợt về. Trong căn nhà ấm áp, Sơn được mẹ mặc thêm áo bông. Ngoài cửa, những chiếc lá khô lay động theo từng cơn gió.\n\nNgười bạn ngoài chợ: Sơn cùng chị Lan ra chợ chơi với các bạn. Hiên đứng nép bên đường trong chiếc áo mỏng. Nhìn bạn chịu rét, Sơn thấy thương.\n\nChiếc áo sẻ chia: Sơn nghĩ đến chiếc áo bông cũ của em Duyên. Lan chạy về lấy áo cho Hiên. Giữa ngày lạnh, sự quan tâm của hai chị em đem đến cho bạn một niềm vui ấm áp.\n\nNỗi lo của hai chị em: Sau đó, sợ mẹ trách vì tự ý đem áo cho bạn, Sơn và Lan vội đi tìm Hiên. Hai chị em tìm mãi, trong lòng đầy lo lắng.\n\nTấm lòng của mẹ: Khi hai chị em về nhà, mẹ Hiên đã mang áo đến trả. Hiểu hoàn cảnh của gia đình Hiên, mẹ Sơn cho mẹ Hiên vay tiền may áo cho con. Sự cảm thông khiến ngày lạnh trở nên ấm áp.\n\nĐiều còn ấm mãi: Sơn và Lan biết thương bạn; những người mẹ cũng ứng xử bằng sự thấu hiểu. Lòng tốt bắt đầu từ việc nhìn thấy và quan tâm đến khó khăn của người khác.\n\nCùng em suy ngẫm: Điều gì khiến Sơn muốn giúp Hiên?\nEm cảm nhận thế nào về cách ứng xử của mẹ Sơn?\nNếu muốn tặng bạn một món đồ của gia đình, em sẽ trao đổi với người lớn ra sao?\n\nLời kể tóm lược, biên soạn lại từ tác phẩm; tranh Gemini do người dùng cung cấp.",
+      "chatEnabled": true
+    },
+    {
+      "_id": "storybook-de-men",
+      "title": "BÀI HỌC ĐƯỜNG ĐỜI ĐẦU TIÊN",
+      "description": "Sách tranh về trách nhiệm và bài học trưởng thành.",
+      "category": "reference-literature-6",
+      "author": "Tô Hoài · Bản kể tóm lược",
+      "type": "heyzine",
+      "url": "/reference/de-men/index.html",
+      "thumbnail": "/reference/de-men/1.png",
+      "order": 1,
+      "aiText": "Bài học đường đời đầu tiên: Phỏng theo truyện của Tô Hoài.\nMột câu chuyện về sự kiêu căng, lòng ân hận và trách nhiệm với người khác.\n\nDế Mèn kiêu căng: Dế Mèn có thân hình khỏe mạnh, đôi càng chắc khỏe. Tự hào về mình, Mèn trở nên kiêu căng, thích ra oai và coi thường những con vật xung quanh.\n\nNgười hàng xóm nhỏ bé: Dế Choắt gầy yếu, sống trong chiếc hang nông. Choắt nhờ Mèn đào giúp một ngách thông sang hang của Mèn để phòng nguy hiểm. Mèn coi thường bạn và không giúp.\n\nMột trò nghịch dại: Thấy chị Cốc bên bờ nước, Mèn cất lời trêu chọc rồi chui tọt vào hang sâu. Mèn tưởng mình có thể tránh được mọi hậu quả.\n\nNỗi ân hận: Chị Cốc hiểu lầm Dế Choắt và trút giận lên bạn. Khi Mèn ra khỏi hang, Choắt đã bị thương nặng. Trước khi chết, Choắt khuyên Mèn bỏ thói hung hăng và biết suy nghĩ trước khi làm.\n\nBài học còn mãi: Mèn chôn Dế Choắt rồi đứng lặng trước mộ bạn. Lần đầu tiên, Mèn thấm thía hậu quả của sự ngông cuồng.\nEm nghĩ Mèn cần thay đổi điều gì? Khi gây lỗi với người khác, em sẽ làm gì?\n\nLời kể tóm lược từ tác phẩm; tranh Gemini do người dùng cung cấp.",
+      "chatEnabled": true
+    },
+    {
+      "_id": "storybook-may-va-song-story",
+      "title": "MÂY VÀ SÓNG",
+      "description": "Sách tranh về tình mẫu tử và trí tưởng tượng tuổi thơ.",
+      "category": "reference-literature-6",
+      "author": "Ra-bin-đra-nát Ta-go · Bản kể tóm lược",
+      "type": "heyzine",
+      "url": "/reference/may-va-song-story/index.html",
+      "thumbnail": "/reference/may-va-song-story/1.png",
+      "order": 1,
+      "aiText": "Mây và sóng: Phỏng theo bài thơ của Ta-go.\nCó một thế giới diệu kỳ, nơi niềm vui bắt đầu từ vòng tay mẹ.\n\nLời mời trên mây: Em bé kể với mẹ về những người trên mây. Họ vui chơi giữa bình minh vàng và vầng trăng bạc, rủ em cùng đến thế giới của họ. Lời mời khiến em thích thú.\n\nMẹ đang đợi ở nhà: Em muốn đi chơi, nhưng nghĩ đến mẹ đang đợi ở nhà. Làm sao em có thể rời mẹ? Em chọn ở bên mẹ và nghĩ ra một trò chơi còn thú vị hơn.\n\nCon là mây, mẹ là trăng: Trong trò chơi tưởng tượng, em là mây, mẹ là trăng. Em ôm lấy mẹ; mái nhà hóa thành bầu trời xanh thẳm. Hình ảnh mẹ và vầng trăng trong tranh diễn tả trí tưởng tượng của em.\n\nTiếng gọi từ sóng: Những người trong sóng lại cất lời mời. Họ ca hát, ngao du khắp nơi. Nhưng em biết mẹ luôn muốn em ở bên. Em nghĩ ra một trò chơi mới cùng mẹ.\n\nMẹ là bến bờ: Em là sóng, mẹ là bến bờ kỳ lạ. Em cười vang, lăn vào lòng mẹ. Trong thế giới của hai mẹ con, tình yêu thương làm nên niềm vui vô tận.\nVì sao em bé chọn ở bên mẹ? Em muốn chơi trò gì cùng người thân?\n\nLời dẫn phỏng theo bài thơ, không phải nguyên văn; tranh Gemini do người dùng cung cấp.",
+      "chatEnabled": true
     }
   ],
   "videos": [
@@ -139,22 +179,11 @@
       "category": "demo-ai-literature",
       "author": "Tập Làm Phim Hoạt Hình A.I",
       "url": "https://www.youtube.com/watch?v=WBqijL_58-w",
+      "fileUrl": "",
       "thumbnail": "https://i.ytimg.com/vi/WBqijL_58-w/hqdefault.jpg",
       "order": 0,
       "duration": 155,
       "sourceUrl": "https://www.youtube.com/watch?v=WBqijL_58-w"
-    },
-    {
-      "_id": "demo-youtube-ban-diem",
-      "title": "Cô bé bán diêm – Kể chuyện cùng AI",
-      "description": "Video minh họa câu chuyện Cô bé bán diêm, dùng khởi động hoạt động đọc hiểu về lòng nhân ái và sự sẻ chia.\nCâu hỏi sau khi xem: Em có cảm xúc gì trước hoàn cảnh của cô bé? Chúng ta có thể làm gì để giúp những người gặp khó khăn?\n\nNguồn: Học AI Cùng Thảo (YouTube). Video được tác giả giới thiệu là sử dụng AI; là tư liệu tham khảo minh họa, không phải bản đọc nguyên văn sách.",
-      "category": "demo-ai-literature",
-      "author": "Học AI Cùng Thảo",
-      "url": "https://www.youtube.com/watch?v=RPfJd-tyysI",
-      "thumbnail": "https://i.ytimg.com/vi/RPfJd-tyysI/hqdefault.jpg",
-      "order": 1,
-      "duration": 101,
-      "sourceUrl": "https://www.youtube.com/watch?v=RPfJd-tyysI"
     }
   ],
   "elearnings": [
@@ -189,9 +218,75 @@
       "category": "demo-kntt-6",
       "url": "/reference/may-va-song/lesson.html",
       "storyPath": "/reference/may-va-song/lesson.html",
+      "fileUrl": "",
       "thumbnail": "/reference/may-va-song/poster.png",
       "order": -8,
       "source": "Ngữ văn 6, tập một, Kết nối tri thức với cuộc sống, trang 44–46."
+    },
+    {
+      "_id": "illustrated-de-men-trach-nhiem",
+      "title": "Dế Mèn · Học cách chịu trách nhiệm",
+      "category": "demo-kntt-6",
+      "description": "6 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+      "url": "/reference/illustrated-lessons/de-men-trach-nhiem/index.html",
+      "storyPath": "/reference/illustrated-lessons/de-men-trach-nhiem/index.html",
+      "thumbnail": "/reference/de-men/1.png",
+      "source": "Bài học đường đời đầu tiên — Tô Hoài",
+      "isActive": true,
+      "order": -20,
+      "viewCount": 0
+    },
+    {
+      "_id": "illustrated-diem-se-chia",
+      "title": "Cô bé bán diêm · Thắp sáng sự sẻ chia",
+      "category": "demo-kntt-6",
+      "description": "6 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+      "url": "/reference/illustrated-lessons/diem-se-chia/index.html",
+      "storyPath": "/reference/illustrated-lessons/diem-se-chia/index.html",
+      "thumbnail": "/reference/co-be-ban-diem-story/1.png",
+      "source": "Cô bé bán diêm — H. C. Andersen",
+      "isActive": true,
+      "order": -19,
+      "viewCount": 0
+    },
+    {
+      "_id": "illustrated-may-song-tuong-tuong",
+      "title": "Mây và sóng · Thế giới của yêu thương",
+      "category": "demo-kntt-6",
+      "description": "6 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+      "url": "/reference/illustrated-lessons/may-song-tuong-tuong/index.html",
+      "storyPath": "/reference/illustrated-lessons/may-song-tuong-tuong/index.html",
+      "thumbnail": "/reference/may-va-song-story/1.png",
+      "source": "Mây và sóng — Ra-bin-đơ-ra-nát Ta-go",
+      "isActive": true,
+      "order": -18,
+      "viewCount": 0
+    },
+    {
+      "_id": "illustrated-gio-lanh-nhan-ai",
+      "title": "Gió lạnh đầu mùa · Chiếc áo của lòng nhân ái",
+      "category": "demo-kntt-6",
+      "description": "6 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+      "url": "/reference/illustrated-lessons/gio-lanh-nhan-ai/index.html",
+      "storyPath": "/reference/illustrated-lessons/gio-lanh-nhan-ai/index.html",
+      "thumbnail": "/reference/gio-lanh-dau-mua/01.png",
+      "source": "Gió lạnh đầu mùa — Thạch Lam",
+      "isActive": true,
+      "order": -17,
+      "viewCount": 0
+    },
+    {
+      "_id": "illustrated-ba-riu-trung-thuc",
+      "title": "Ba lưỡi rìu · Giá trị của lòng trung thực",
+      "category": "demo-kntt-6",
+      "description": "5 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+      "url": "/reference/illustrated-lessons/ba-riu-trung-thuc/index.html",
+      "storyPath": "/reference/illustrated-lessons/ba-riu-trung-thuc/index.html",
+      "thumbnail": "/reference/story-cover.jpg",
+      "source": "Ba lưỡi rìu — Truyện dân gian",
+      "isActive": true,
+      "order": -16,
+      "viewCount": 0
     }
   ],
   "quizzes": [

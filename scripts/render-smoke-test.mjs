@@ -17,8 +17,11 @@ async function start(){
 }
 try{
  await start();
- for(const [key,count] of Object.entries({storybooks:1,videos:2,elearnings:3,quizzes:20})){
-  const response=await fetch(base+'/api/'+key);const data=await response.json();assert.equal(data[key].length,count,key);
+ const adminLogin=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'admin',password:env.ADMIN_PASSWORD})});
+ const headers={Authorization:'Bearer '+(await adminLogin.json()).token};
+ const snapshot=JSON.parse(fs.readFileSync(new URL('../docs/demo-library.json',import.meta.url),'utf8'));
+ for(const [key,count] of Object.entries({storybooks:snapshot.storybooks.length,videos:snapshot.videos.length,elearnings:3,quizzes:20})){
+  const response=await fetch(base+'/api/'+key,{headers});const data=await response.json();assert.equal(data[key].length,count,key);
   for(const row of data[key])for(const field of ['thumbnail','url','storyPath'])if(row[field]?.startsWith('/'))assert.equal((await fetch(base+row[field])).status,200,`${key}: ${row[field]}`);
  }
  assert.equal((await fetch(base+'/elearning/demo-lesson-may-va-song')).status,200);
@@ -28,6 +31,7 @@ try{
  const registration=await fetch(base+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'customer-test',email:'customer@example.test',password:'CustomerTest!2026'})});assert.equal(registration.status,201);
  const customer=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'customer-test',password:'CustomerTest!2026'})});assert.equal(customer.status,200);
  await stop();await start();assert.equal(fs.readFileSync(path.join(env.DATA_DIR,'demo-bootstrap-v1.done'),'utf8'),marker);
+ assert.equal((await(await fetch(base+'/api/quizzes',{headers})).json()).quizzes.length,20);
  assert.equal((await(await fetch(base+'/api/quizzes')).json()).quizzes.length,20);
  console.log('PASS clean production bootstrap, all demo counts/local URLs, admin login, origin, SPA routing and restart without reseeding.');
 }finally{await stop();}

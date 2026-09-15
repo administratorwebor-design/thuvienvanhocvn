@@ -1,11 +1,11 @@
-export async function generateText(prompt) {
+export async function generateText(prompt, { images = [], timeoutMs = 30000 } = {}) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw Object.assign(new Error('Trợ lý AI chưa được cấu hình. Vui lòng liên hệ quản trị viên.'), { status: 503 });
   const models = [...new Set([process.env.GEMINI_MODEL || 'gemini-2.5-flash', ...(process.env.GEMINI_FALLBACK_MODELS || 'gemini-2.5-flash-lite').split(',')])].map(s => s.trim()).filter(Boolean);
   for (const model of models) {
     try {
       const endpoint = process.env.NODE_ENV === 'test' && process.env.AI_TEST_URL ? process.env.AI_TEST_URL : `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-      const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, signal: AbortSignal.timeout(30000), body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 12000 } }) });
+      const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, signal: AbortSignal.timeout(timeoutMs), body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }, ...images.map(image => ({ inline_data: { mime_type: image.mimeType, data: image.data } }))] }], generationConfig: { temperature: 0.4, maxOutputTokens: 12000 } }) });
       if (!response.ok) { if (response.status === 401 || response.status === 403) break; continue; }
       const payload = await response.json();
       const text = payload.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('\n').trim();

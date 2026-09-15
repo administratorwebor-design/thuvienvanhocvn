@@ -15,6 +15,12 @@ import { documentText, extractCourse } from './documents.js';
 import { registerQuizRoutes } from './quiz-routes.js';
 import { generateText, boundedCount, generatedQuestions, generatedCards } from './ai.js';
 import { loadAiSettings, registerAiSettings } from './ai-settings.js';
+import { registerClassrooms, studentResult } from './classrooms.js';
+import { registerStorybookStudio } from './storybook-studio.js';
+import { registerTeacherVideos } from './teacher-videos.js';
+import { registerElearningStudio } from './elearning-studio.js';
+import { registerTeacherAssessments } from './teacher-assessments.js';
+import { registerTeacherLibrary } from './teacher-library.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -133,6 +139,7 @@ function rateLimit(max, windowMs) {
 }
 app.use('/api/auth', rateLimit(60, 15 * 60 * 1000));
 const aiLimit = rateLimit(20, 60 * 1000);
+registerTeacherLibrary(app, { auth, readDb, writeDb });
 
 function publicUser(user) {
   if (!user) return null;
@@ -172,6 +179,12 @@ function admin(req, res, next) {
 function fileUrl(file) {
   return file ? `${PUBLIC_BASE_URL}/uploads/${file.filename}` : '';
 }
+
+registerClassrooms(app, { auth, admin, readDb, writeDb });
+registerStorybookStudio(app, { auth, aiLimit, readDb, writeDb, uploadDir: UPLOAD_DIR });
+registerTeacherVideos(app, { auth, readDb, writeDb, uploadDir: UPLOAD_DIR });
+registerElearningStudio(app, { auth, aiLimit, readDb, writeDb, uploadDir: UPLOAD_DIR });
+registerTeacherAssessments(app, { auth, readDb, writeDb });
 
 function pickBody(req, fields) {
   const out = {};
@@ -527,7 +540,8 @@ app.patch('/api/admin/users/:id', auth(), admin, (req, res) => {
   const db = readDb();
   const user = findById(db.users, req.params.id, res);
   if (!user) return;
-  if (req.body.role && !['student', 'member', 'admin'].includes(req.body.role)) throw badRequest('Vai trò không hợp lệ.');
+  if (req.body.role && !['student', 'member', 'admin', 'teacher'].includes(req.body.role)) throw badRequest('Vai trò không hợp lệ.');
+  if (req.body.role && req.body.role !== 'teacher' && db.classes.some(c=>c.teacherId===user._id)) throw badRequest('Hãy bàn giao các lớp trước khi bỏ quyền giáo viên.');
   if (user._id === req.user._id && ((req.body.role && req.body.role !== 'admin') || req.body.isLocked === true || req.body.status === 'rejected')) throw badRequest('Không thể tự khóa hoặc bỏ quyền quản trị.');
   if (req.body.email !== undefined) req.body.email = normalizeEmail(req.body.email);
   Object.assign(user, pickBody(req, ['fullName', 'email', 'role', 'dateOfBirth', 'className', 'school', 'status']), { updatedAt: now() });
@@ -564,6 +578,7 @@ app.patch('/api/admin/users/:id/toggle-lock', auth(), admin, (req, res) => {
   const user = findById(db.users, req.params.id, res);
   if (!user) return;
   user.isLocked = !user.isLocked;
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
   user.updatedAt = now();
   writeDb(db);
   res.json({ success: true, user: publicUser(user) });
@@ -584,6 +599,7 @@ app.patch('/api/admin/users/:id/change-password', auth(), admin, async (req, res
 
 app.delete('/api/admin/users/:id', auth(), admin, (req, res) => {
   const db = readDb();
+  if (db.classes.some(c=>c.teacherId===req.params.id)||db.memberships.some(m=>m.studentId===req.params.id)) throw badRequest('Tài khoản đã liên kết lớp học. Hãy khóa tài khoản để giữ lịch sử.');
   db.users = db.users.filter((user) => user._id !== req.params.id || user.role === 'admin');
   writeDb(db);
   res.json({ success: true });
@@ -718,13 +734,13 @@ registerQuizRoutes(app, { auth, admin, upload, readDb, writeDb, previousQuiz });
 
 app.get('/api/quizzes/my-results', auth(), (req, res) => {
   const db = readDb();
-  const results = db.quizResults.filter((result) => result.user === req.user._id);
+  const results = [...db.quizResults, ...db.classResults.map(studentResult)].filter((result) => result.user === req.user._id);
   res.json(listPayload('results', results, req));
 });
 
 app.get('/api/quizzes/my-results/:id', auth(), (req, res) => {
   const db = readDb();
-  const result = findById(db.quizResults, req.params.id, res);
+  const result = findById([...db.quizResults, ...db.classResults.map(studentResult)], req.params.id, res);
   if (!result) return;
   if (result.user !== req.user._id) return res.status(404).json({ error: 'Not found' });
   res.json({ result });
@@ -987,7 +1003,7 @@ app.post('/api/sgk-chat/chat', auth(), aiLimit, async (req, res, next) => {
 
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 app.use(express.static(DIST_DIR, { dotfiles: 'deny', index: false }));
-const spaRoute = /^\/(?:$|login$|register$|forgot-password$|reset-password\/[^/]+$|verify-email\/[^/]+$|admin(?:\/(?:login|users|categories|banners|storybooks|videos|elearnings|quizzes|quiz-results|ai-settings))?$|storybooks(?:\/[^/]+)?$|videos$|video\/[^/]+$|elearnings$|elearning\/[^/]+$|quizzes$|quiz\/[^/]+$|my-results(?:\/[^/]+)?$|my-quiz-history$|my-flashcards$|profile$)/;
+const spaRoute = /^\/(?:$|classes(?:\/[^/]+)?$|assignments\/[^/]+$|login$|register$|forgot-password$|reset-password\/[^/]+$|verify-email\/[^/]+$|admin(?:\/(?:login|users|teachers|classes|categories|banners|storybooks|videos|elearnings|quizzes|quiz-results|ai-settings))?$|storybooks(?:\/[^/]+)?$|videos$|video\/[^/]+$|elearnings$|elearning\/[^/]+$|quizzes$|quiz\/[^/]+$|my-results(?:\/[^/]+)?$|my-quiz-history$|my-flashcards$|profile$)/;
 app.get(spaRoute, (_req, res, next) => {
   if (!fs.existsSync(path.join(DIST_DIR, 'index.html'))) return next();
   res.sendFile(path.join(DIST_DIR, 'index.html'));

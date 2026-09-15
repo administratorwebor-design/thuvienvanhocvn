@@ -2,6 +2,8 @@
 
 **Deploy demo lên Render:** xem [hướng dẫn GitHub → Render](docs/DEPLOY-RENDER.md). Đã có Blueprint `render.yaml`, Node 24 và snapshot học liệu hiện tại; không cần đưa database local lên GitHub.
 
+**Quản lý lớp học:** xem [hướng dẫn admin, giáo viên, học sinh](docs/CLASSROOMS.md). Admin tạo giáo viên tại `/admin/teachers`; học sinh vào `/classes` để nhập mã và chờ duyệt. Bài kiểm tra mới được giao/chấm trong lớp.
+
 Bản phục dựng từ frontend còn lại và video “THUYẾT MÌNH SẢN PHẨM AI.mp4”. Giao diện giữ thiết kế đã trình diễn; backend được dựng lại. Chi tiết nguồn gốc và giới hạn nằm trong [RESTORATION.md](RESTORATION.md).
 
 ## Chạy trên máy

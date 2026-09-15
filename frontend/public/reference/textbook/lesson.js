@@ -18,6 +18,7 @@
     b.append(node('span',`${i+1}. ${label}`)); b.onclick = () => { index=i; render(); }; $('menu').append(b);
   });
   function render() {
+    if (window.parent !== window) window.parent.postMessage({type:'literature-progress',position:index+1,total:count,unit:'pages'},'*');
     audio.pause(); $('status').textContent='';
     $('previous').disabled = index === 0; $('next').disabled = index === count-1;
     $('counter').textContent = `${index+1} / ${count}`; $('progress').value=index+1; $('progress').max=count;

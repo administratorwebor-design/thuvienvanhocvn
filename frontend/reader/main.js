@@ -25,6 +25,7 @@ pages.forEach((page, index) => {
   article.setAttribute('aria-label', page.title);
   const inner = document.createElement('div'); inner.className = 'story-page-inner';
   const image = document.createElement('img'); image.className = 'story-image'; image.src = page.image; image.alt = page.title; image.draggable = false; inner.append(image);
+  if (page.heading) { const heading = document.createElement('h2'); heading.className = 'story-heading'; heading.textContent = page.heading; inner.append(heading); }
   if (page.text) {
     const play = document.createElement('button'); play.className = 'read-page'; play.dataset.page = index; play.setAttribute('aria-label', 'Đọc trang truyện'); play.innerHTML = svg('play'); inner.append(play);
     const copy = document.createElement('p'); copy.className = 'story-copy'; copy.textContent = page.text; inner.append(copy);
@@ -41,6 +42,7 @@ function stopReading() {
   document.querySelectorAll('.read-page').forEach(b => { b.innerHTML = svg('play'); b.setAttribute('aria-label', 'Đọc trang truyện'); });
 }
 function sync() {
+  if (window.parent !== window) window.parent.postMessage({type:'literature-progress',position:current+1,total:pages.length,unit:'pages'},'*');
   $('counter').textContent = `${current + 1} / ${pages.length}`; $('progress').value = current;
   $('previous').disabled = current === 0; $('next').disabled = current === pages.length - 1;
   [...$('thumbnails').children].forEach((b, i) => b.setAttribute('aria-current', String(i === current)));

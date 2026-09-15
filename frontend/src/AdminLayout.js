@@ -21,7 +21,7 @@ function AdminLayout() {
       className: "lg:pl-64",
       children: jsxRuntime.jsxs("main", {
         className: "p-6",
-        children: [jsxRuntime.jsx("a", { href: "/admin/ai-settings", className: "block text-right text-sm text-blue-600 mb-4", children: "Cài đặt trợ lý AI" }), jsxRuntime.jsx(wS, {})]
+        children: [jsxRuntime.jsxs("nav", { className: "class-banner", children: [jsxRuntime.jsx("a",{href:"/admin/classes",children:"Toàn bộ lớp học"}),jsxRuntime.jsx("a",{href:"/admin/teachers",children:"Tài khoản giáo viên"}),jsxRuntime.jsx("a",{href:"/admin/ai-settings",children:"Cài đặt trợ lý AI"})] }), jsxRuntime.jsx(wS, {})]
       })
     })]
   });

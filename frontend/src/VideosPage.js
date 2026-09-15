@@ -1,6 +1,7 @@
 // Recovered from the surviving frontend bundle; local variable names are not original.
 import { vp, React, useQuery, apiClient, jsxRuntime, Ld, Rd, Ke, as, Link, Vl } from './runtime.js';
 import { useCategories } from './useCategories.js';
+import { MaterialCard } from './MaterialActions.jsx';
 function VideosPage() {
   const [t, e] = vp(),
     [n, i] = React.useState(t.get("search") || ""),
@@ -103,7 +104,8 @@ function VideosPage() {
       })]
     }) : jsxRuntime.jsx("div", {
       className: "grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6",
-      children: x?.map(_ => jsxRuntime.jsxs(Link, {
+      children: x?.map(_ => jsxRuntime.jsxs(MaterialCard, {
+        kind: 'videos', item: _,
         to: `/video/${_._id}`,
         className: "bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition group",
         children: [jsxRuntime.jsxs("div", {

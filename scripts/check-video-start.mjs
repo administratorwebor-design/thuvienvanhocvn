@@ -1,0 +1,3 @@
+import {chromium} from 'playwright';import fs from 'node:fs';
+const b=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+try{for(const v of JSON.parse(fs.readFileSync('docs/curated-videos.json')).videos.slice(1)){const p=await b.newPage();await p.goto('http://127.0.0.1:4000/video/demo-youtube-'+v.key);const f=p.frameLocator('iframe');await f.getByRole('button',{name:/Phát video|Play/}).first().click({timeout:30000});await p.waitForTimeout(10000);console.log(v.key,await f.locator('video').evaluate(v=>({time:v.currentTime,paused:v.paused,ready:v.readyState})));await p.close();}}finally{await b.close();}

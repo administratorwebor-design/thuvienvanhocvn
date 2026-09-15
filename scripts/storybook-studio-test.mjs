@@ -1,0 +1,55 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { startTestServer } from '../tests/support.mjs';
+import { parseStudioPlan, studioHtml } from '../backend/storybook-studio.js';
+
+assert.throws(()=>parseStudioPlan('{"scenes":[]}'), /6 cảnh/);
+assert.throws(()=>parseStudioPlan('not json'), /6 cảnh/);
+const escaped=studioHtml({title:'<script>$&',scenes:[{image:'/uploads/test.png',title:'</script>',narration:'</script><script>alert(1)</script>$&'}]});
+assert(!escaped.includes('<script>alert(1)'));
+assert(escaped.includes('\\u003c/script>'));
+const s=await startTestServer({ai:true,classrooms:true,studio:true,seed:false});
+const browser=await chromium.launch({headless:true,executablePath:process.env.BROWSER_PATH||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+try {
+  for(const username of ['studio-teacher','other-teacher'])assert.equal((await s.request('POST','/teachers',{username,password:'TeacherTest!2026',fullName:username},s.adminToken)).status,201);
+  const login=await s.request('POST','/auth/login',{username:'studio-teacher',password:'TeacherTest!2026'}),token=login.data.token;
+  const other=(await s.request('POST','/auth/login',{username:'other-teacher',password:'TeacherTest!2026'})).data.token;
+  const c=(await s.request('POST','/classes',{name:'6A · Xưởng sáng tạo',schoolYear:'2026–2027'},token)).data.classroom;
+  const base=`/classes/${c._id}/storybook-studio`;
+  assert.equal((await s.request('GET',base,undefined,other)).status,403);
+  assert.equal((await s.request('POST',base,{title:'',content:'test'},token)).status,400);
+  const p=await browser.newPage({viewport:{width:1500,height:1050}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
+  p.setDefaultTimeout(15000); p.on('response', async r=>{if(r.url().includes('storybook-studio') && r.status()>=400)console.log(r.status(),await r.text());});
+  await p.goto(s.base+'/login');await p.getByPlaceholder('username').fill('studio-teacher');await p.locator('input[type=password]').fill('TeacherTest!2026');await p.locator('button[type=submit]').click();await p.waitForURL(s.base+'/');
+  await p.goto(s.base+'/classes/'+c._id);await p.getByRole('button',{name:'Story Book',exact:true}).click();
+  await p.getByLabel('Chủ đề / tên sách',{exact:true}).fill('Cô bé bán diêm');await p.getByLabel('Nội dung câu chuyện',{exact:true}).fill('Đêm giao thừa, cô bé bán diêm ngồi bên góc phố. Em quẹt diêm và nhớ đến bà. Sáng hôm sau em đã chết vì giá rét.');
+  await p.getByRole('button',{name:'Lưu ý tưởng & tiếp tục →'}).click();await p.getByRole('button',{name:'Tạo 6 prompt bằng Gemini'}).click();await p.locator('.studio-scene').last().waitFor();
+  assert.equal(await p.locator('.studio-scene').count(),6);
+  const draft=(await s.request('GET',base,undefined,token)).data.drafts[0];
+  assert.equal((await s.request('POST',base+'/'+draft._id+'/render',{},token)).status,400);
+  assert.equal((await s.request('POST',base+'/'+draft._id+'/publish',{},token)).status,400);
+  const invalid=new FormData();invalid.set('image',new Blob(['<html>bad</html>'],{type:'image/png'}),'bad.png');assert.equal((await s.request('POST',base+'/'+draft._id+'/scenes/0/image',invalid,token)).status,400);
+  fs.mkdirSync('artifacts/storybook-studio',{recursive:true});await p.screenshot({path:'artifacts/storybook-studio/prompts.png',fullPage:true});
+  await p.reload();await p.getByRole('button',{name:'Story Book',exact:true}).click();await p.getByLabel('Tiếp tục bản nháp').selectOption(draft._id);await p.getByText('03 · Ảnh của sáu cảnh').waitFor();
+  const png=Buffer.from(await p.evaluate(()=>{const c=document.createElement('canvas');c.width=400;c.height=600;const ctx=c.getContext('2d');ctx.fillStyle='#aac6d7';ctx.fillRect(0,0,400,600);ctx.fillStyle='#bf8467';ctx.fillRect(140,250,110,280);ctx.fillStyle='#f6dbc2';ctx.beginPath();ctx.arc(195,215,55,0,Math.PI*2);ctx.fill();return c.toDataURL().split(',')[1];}),'base64');
+  for(let i=0;i<6;i++){await p.getByLabel(`Tải ảnh cảnh ${i+1}`,{exact:true}).setInputFiles({name:'scene.png',mimeType:'image/png',buffer:png});await p.getByLabel(`Thay ảnh cảnh ${i+1}`,{exact:true}).waitFor();await p.getByLabel(`Thay ảnh cảnh ${i+1}`,{exact:true}).isEnabled();}
+  await p.getByRole('button',{name:'Tiếp tục dựng sách →'}).click();await p.getByRole('button',{name:'Gemini viết lời & dựng sách'}).click();
+  const frame=p.frameLocator('iframe[title="Xem thử Story Book"]');await frame.getByText('1 / 6',{exact:true}).waitFor();
+  assert.equal(await frame.locator('#book img').count(),6);assert(await frame.locator('#book img').evaluateAll(images=>images.every(i=>i.complete&&i.naturalWidth>0)));
+  await frame.getByRole('button',{name:'Trang sau',exact:true}).click();await frame.getByText('2 / 6',{exact:true}).waitFor();
+  await p.screenshot({path:'artifacts/storybook-studio/preview.png',fullPage:true});
+  await p.setViewportSize({width:390,height:844});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.screenshot({path:'artifacts/storybook-studio/mobile.png',fullPage:true});
+  await p.setViewportSize({width:1500,height:1050});await p.getByRole('button',{name:'Đã xem thử · Tiếp tục →'}).click();await p.getByRole('button',{name:'Lưu & giao cho lớp',exact:true}).click();await p.getByText('Đã giao sách cho lớp. Học sinh có thể mở trong Bài được giao.',{exact:true}).waitFor();
+  const published=(await s.request('GET',base,undefined,token)).data.drafts[0];assert(published.storybookId);
+  assert.equal((await s.request('POST',base+'/'+draft._id+'/publish',{assign:true},token)).status,200);
+  const classroom=(await s.request('GET','/classes/'+c._id,undefined,token)).data;assert.equal(classroom.assignments.filter(a=>a.resourceId===published.storybookId).length,1);
+  assert.equal((await s.request('PATCH',base+'/'+draft._id,{scenes:published.scenes},token)).status,409);
+  await s.request('POST','/auth/register',{username:'studio-student',password:'StudentTest!2026',fullName:'Học sinh'});
+  const student=(await s.request('POST','/auth/login',{username:'studio-student',password:'StudentTest!2026'})).data;
+  assert.equal((await s.request('GET',base,undefined,student.token)).status,403);
+  await s.request('POST','/classes/join',{code:c.joinCode},student.token);await s.request('PATCH',`/classes/${c._id}/members/${student.user._id}`,{status:'approved'},token);
+  assert.equal((await s.request('GET','/assignments/'+classroom.assignments[0]._id,undefined,student.token)).status,200);
+  assert.deepEqual(errors,[]);
+  console.log('PASS: teacher permissions, AI validation, draft resume, six uploads, preview and page turn, responsive layout, publish, idempotent assignment, student access, no browser errors. AI used an isolated mock.');
+}finally{await browser.close();await s.stop();}

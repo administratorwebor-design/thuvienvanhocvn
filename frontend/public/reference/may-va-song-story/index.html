@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MÂY VÀ SÓNG</title><link rel="stylesheet" href="../reader.css"><link rel="stylesheet" href="../gio-lanh-dau-mua/story.css"><script src="pages.js"></script><script defer src="../reader.js"></script></head>
+<body>
+  <div class="reader-tools" aria-label="Công cụ đọc sách">
+    <button id="overview" aria-label="Danh sách trang" aria-expanded="false"></button>
+    <button id="zoom" aria-label="Phóng to" aria-pressed="false"></button>
+    <button id="fullscreen" aria-label="Toàn màn hình"></button>
+    <button id="sound" aria-label="Tắt tiếng đọc" aria-pressed="false"></button>
+  </div>
+  <div id="thumbnails" aria-label="Chọn trang" hidden></div>
+  <main class="reader-stage">
+    <div class="book-wrap"><div id="book" aria-label="Truyện MÂY VÀ SÓNG"></div>
+      <button id="previous" class="page-arrow previous" aria-label="Trang trước" disabled></button>
+      <button id="next" class="page-arrow next" aria-label="Trang sau" disabled></button>
+    </div>
+  </main>
+  <footer><input id="progress" type="range" min="0" value="0" step="1" aria-label="Chuyển đến trang"><output id="counter" aria-live="polite"></output></footer>
+  <p id="reader-status" role="status"></p>
+</body></html>

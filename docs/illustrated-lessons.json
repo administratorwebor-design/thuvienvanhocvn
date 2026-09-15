@@ -1,0 +1,67 @@
+[
+  {
+    "_id": "illustrated-de-men-trach-nhiem",
+    "title": "Dế Mèn · Học cách chịu trách nhiệm",
+    "category": "demo-kntt-6",
+    "description": "6 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+    "url": "/reference/illustrated-lessons/de-men-trach-nhiem/index.html",
+    "storyPath": "/reference/illustrated-lessons/de-men-trach-nhiem/index.html",
+    "thumbnail": "/reference/de-men/1.png",
+    "source": "Bài học đường đời đầu tiên — Tô Hoài",
+    "isActive": true,
+    "order": -20,
+    "viewCount": 0
+  },
+  {
+    "_id": "illustrated-diem-se-chia",
+    "title": "Cô bé bán diêm · Thắp sáng sự sẻ chia",
+    "category": "demo-kntt-6",
+    "description": "6 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+    "url": "/reference/illustrated-lessons/diem-se-chia/index.html",
+    "storyPath": "/reference/illustrated-lessons/diem-se-chia/index.html",
+    "thumbnail": "/reference/co-be-ban-diem-story/1.png",
+    "source": "Cô bé bán diêm — H. C. Andersen",
+    "isActive": true,
+    "order": -19,
+    "viewCount": 0
+  },
+  {
+    "_id": "illustrated-may-song-tuong-tuong",
+    "title": "Mây và sóng · Thế giới của yêu thương",
+    "category": "demo-kntt-6",
+    "description": "6 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+    "url": "/reference/illustrated-lessons/may-song-tuong-tuong/index.html",
+    "storyPath": "/reference/illustrated-lessons/may-song-tuong-tuong/index.html",
+    "thumbnail": "/reference/may-va-song-story/1.png",
+    "source": "Mây và sóng — Ra-bin-đơ-ra-nát Ta-go",
+    "isActive": true,
+    "order": -18,
+    "viewCount": 0
+  },
+  {
+    "_id": "illustrated-gio-lanh-nhan-ai",
+    "title": "Gió lạnh đầu mùa · Chiếc áo của lòng nhân ái",
+    "category": "demo-kntt-6",
+    "description": "6 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+    "url": "/reference/illustrated-lessons/gio-lanh-nhan-ai/index.html",
+    "storyPath": "/reference/illustrated-lessons/gio-lanh-nhan-ai/index.html",
+    "thumbnail": "/reference/gio-lanh-dau-mua/01.png",
+    "source": "Gió lạnh đầu mùa — Thạch Lam",
+    "isActive": true,
+    "order": -17,
+    "viewCount": 0
+  },
+  {
+    "_id": "illustrated-ba-riu-trung-thuc",
+    "title": "Ba lưỡi rìu · Giá trị của lòng trung thực",
+    "category": "demo-kntt-6",
+    "description": "5 trang với ảnh riêng, câu hỏi có giải thích và bài viết vận dụng.",
+    "url": "/reference/illustrated-lessons/ba-riu-trung-thuc/index.html",
+    "storyPath": "/reference/illustrated-lessons/ba-riu-trung-thuc/index.html",
+    "thumbnail": "/reference/story-cover.jpg",
+    "source": "Ba lưỡi rìu — Truyện dân gian",
+    "isActive": true,
+    "order": -16,
+    "viewCount": 0
+  }
+]

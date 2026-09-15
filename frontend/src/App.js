@@ -34,6 +34,7 @@ import { StoryQuizHistory } from './StoryQuizHistory.js';
 import { MyFlashcardsPage } from './MyFlashcardsPage.js';
 import { ProfilePage } from './ProfilePage.js';
 import { AISettings } from './AISettings.jsx';
+import { Classrooms, ClassroomDetail, ClassroomAssignment, TeacherAccounts } from './Classrooms.jsx';
 function App() {
   return jsxRuntime.jsx(uj, {
     client: IU,
@@ -50,6 +51,10 @@ function App() {
             path: "/admin",
             element: jsxRuntime.jsx(AdminLayout, {}),
             children: [jsxRuntime.jsx(St, {
+              path: "classes", element: jsxRuntime.jsx(Classrooms, {})
+            }), jsxRuntime.jsx(St, {
+              path: "teachers", element: jsxRuntime.jsx(TeacherAccounts, {})
+            }), jsxRuntime.jsx(St, {
               index: !0,
               element: jsxRuntime.jsx(AdminDashboard, {})
             }), jsxRuntime.jsx(St, {
@@ -103,6 +108,12 @@ function App() {
           }), jsxRuntime.jsxs(St, {
             element: jsxRuntime.jsx(SiteLayout, {}),
             children: [jsxRuntime.jsx(St, {
+              path: "/classes", element: jsxRuntime.jsx(Classrooms, {})
+            }), jsxRuntime.jsx(St, {
+              path: "/classes/:id", element: jsxRuntime.jsx(ClassroomDetail, {})
+            }), jsxRuntime.jsx(St, {
+              path: "/assignments/:id", element: jsxRuntime.jsx(ClassroomAssignment, {})
+            }), jsxRuntime.jsx(St, {
               path: "/",
               element: jsxRuntime.jsx(HomePage, {})
             }), jsxRuntime.jsx(St, {

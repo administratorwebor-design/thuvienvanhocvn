@@ -2,6 +2,7 @@
 import { useAuth } from './useAuth.js';
 import { useNavigate, vp, React, useQuery, apiClient, jsxRuntime, Ld, Rd, Ke, Jl, Vl, gr } from './runtime.js';
 import { useCategories } from './useCategories.js';
+import { MaterialActions } from './MaterialActions.jsx';
 function ElearningsPage() {
   const {
       user: t
@@ -155,7 +156,7 @@ function ElearningsPage() {
               className: "w-3 h-3"
             }), " Đăng nhập để xem"]
           })]
-        })]
+        }), jsxRuntime.jsx(MaterialActions, { kind: 'elearnings', item: E })]
       }, E._id))
     })]
   });

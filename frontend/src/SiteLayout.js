@@ -2,6 +2,7 @@
 import { useAuth } from './useAuth.js';
 import { useNavigate, React, jsxRuntime, Link, nn, y0, Vf, to, Hl, ql, Xa, bw, xw, Bn, _w, wS } from './runtime.js';
 import { LiteratureAssistant } from './LiteratureAssistant.js';
+import { ClassroomGate } from './ClassroomGate.jsx';
 function SiteLayout() {
   const {
       user: t,
@@ -41,7 +42,7 @@ function SiteLayout() {
             })]
           }), jsxRuntime.jsx("nav", {
             className: "hidden lg:flex items-center gap-1",
-            children: y0.map(f => jsxRuntime.jsxs(Vf, {
+            children: (t ? [...y0, {path:'/classes',label:t.role === 'teacher' ? 'Lớp giảng dạy' : 'Lớp của tôi',icon:nn}] : y0).map(f => jsxRuntime.jsxs(Vf, {
               to: f.path,
               className: ({
                 isActive: p
@@ -150,7 +151,7 @@ function SiteLayout() {
         className: "lg:hidden border-t bg-white",
         children: jsxRuntime.jsx("nav", {
           className: "p-4 space-y-1",
-          children: y0.map(f => jsxRuntime.jsxs(Vf, {
+          children: (t ? [...y0, {path:'/classes',label:t.role === 'teacher' ? 'Lớp giảng dạy' : 'Lớp của tôi',icon:nn}] : y0).map(f => jsxRuntime.jsxs(Vf, {
             to: f.path,
             onClick: () => r(!1),
             className: ({
@@ -166,7 +167,7 @@ function SiteLayout() {
         })
       })]
     }), jsxRuntime.jsx("main", {
-      children: jsxRuntime.jsx(wS, {})
+      children: jsxRuntime.jsx(ClassroomGate, { children: jsxRuntime.jsx(wS, {}) })
     }), jsxRuntime.jsx("footer", {
       className: "bg-gray-900 text-white mt-16",
       children: jsxRuntime.jsxs("div", {

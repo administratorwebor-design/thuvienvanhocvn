@@ -2,6 +2,8 @@
 
 ## Cấu hình đã chuẩn bị
 
+**Bản quản lý lớp:** sau deploy, admin cần cấp tài khoản giáo viên và tạo lớp trước khi học sinh học. Học sinh nhập mã và chờ duyệt; không tự gắn tài khoản cũ vào lớp. Xem [CLASSROOMS.md](CLASSROOMS.md). Kho học liệu mẫu vẫn được giữ, giáo viên chọn bài để giao cho từng lớp.
+
 - Web Service Node.js 24, phục vụ cả frontend và API; Root Directory để trống.
 - Build: `npm ci --include=dev && npm ci --prefix backend --omit=dev && npm run build`.
 - Start: `npm run start:render`. Health check: `/api/health`.

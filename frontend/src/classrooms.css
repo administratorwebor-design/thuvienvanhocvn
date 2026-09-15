@@ -1,0 +1,282 @@
+.classroom {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px;
+  color: #253b4a;
+}
+.classroom h1 {
+  font-size: 30px;
+  font-weight: 750;
+  margin-bottom: 12px;
+}
+.classroom h2 {
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.classroom p {
+  margin: 9px 0;
+  line-height: 1.65;
+}
+.class-panel {
+  background: white;
+  border: 1px solid #dce5e9;
+  border-radius: 16px;
+  padding: 22px;
+  margin: 18px 0;
+  min-width: 0;
+}
+.class-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 16px;
+}
+.class-grid .class-panel {
+  margin: 0;
+}
+.class-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+.class-form h2 {
+  grid-column: 1/-1;
+}
+.class-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.classroom input:not([type="radio"]),
+.classroom select,
+.classroom textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #b9cbd5;
+  border-radius: 8px;
+  color: #253b4a;
+  background: white;
+  font: inherit;
+  max-width: 100%;
+}
+.classroom textarea {
+  min-height: 120px;
+}
+.classroom button,
+.class-link {
+  display: inline-block;
+  padding: 10px 16px;
+  background: #205d7b;
+  color: white;
+  border-radius: 9px;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  max-width: 100%;
+}
+.classroom button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.classroom button.secondary {
+  background: #ecf2f5;
+  color: #23536b;
+}
+.classroom button:focus-visible,
+.classroom a:focus-visible {
+  outline: 3px solid #d58b21;
+  outline-offset: 3px;
+}
+.class-actions,
+.class-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0;
+  align-items: center;
+}
+.class-tabs {
+  border-bottom: 1px solid #cddce3;
+  padding-bottom: 12px;
+}
+.class-error {
+  background: #fff0ec;
+  border: 1px solid #dfb2a4;
+  padding: 12px;
+  color: #a13322;
+  border-radius: 8px;
+}
+.class-code {
+  letter-spacing: 2px;
+  background: #e7f3f6;
+  padding: 6px 10px;
+  display: inline-block;
+}
+.class-table {
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+}
+.class-table table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 540px;
+}
+.class-table th,
+.class-table td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #e5e9ed;
+}
+.class-table td button {
+  font-size: 13px;
+  padding: 6px 9px;
+  margin: 3px;
+}
+.class-tag {
+  font-size: 12px;
+  color: #22637c;
+  background: #e6f3f6;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+.class-answer {
+  margin: 15px 0;
+  padding: 15px;
+  border-left: 3px solid #7ab4c6;
+  background: #f4f8fa;
+  border-radius: 6px;
+}
+.class-grade {
+  margin-top: 20px;
+}
+.classroom details summary {
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0;
+}
+.classroom .preserve {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.class-media {
+  background: white;
+  margin: 20px 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.class-media iframe {
+  width: 100%;
+  height: 70vh;
+  min-height: 450px;
+  border: 0;
+}
+.class-option {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e0e7eb;
+  border-radius: 8px;
+  margin: 8px 0;
+  cursor: pointer;
+}
+.class-timer {
+  position: sticky;
+  top: 65px;
+  background: #fff4df;
+  padding: 12px;
+  border: 1px solid #edc078;
+  border-radius: 9px;
+  z-index: 10;
+}
+.classroom legend {
+  font-weight: bold;
+  padding: 0 8px;
+}
+.class-banner {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 24px;
+  background: #e7f2f6;
+  color: #20536d;
+}
+.class-banner a {
+  font-weight: 600;
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  .classroom {
+    padding: 18px 12px;
+  }
+  .class-panel {
+    padding: 16px;
+  }
+  .classroom h1 {
+    font-size: 25px;
+  }
+  .class-form {
+    grid-template-columns: 1fr;
+  }
+  .class-media iframe {
+    min-height: 500px;
+  }
+  .class-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.class-media .class-video iframe {
+  height: 100%;
+  min-height: 0;
+}
+.classroom.classroom-wide { max-width: none; padding: 28px 28px; }
+.class-workspace { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 22px; }
+.class-sidebar.class-tabs { position: sticky; top: 85px; display: flex; flex-direction: column; align-items: stretch; margin: 0; padding: 12px; border: 1px solid #dce5e9; border-radius: 16px; background: white; gap: 8px; }
+.class-sidebar button { text-align: left; padding: 13px 12px; font-size: 14px; }
+.class-sidebar button.secondary { background: transparent; }
+.class-sidebar button.secondary:hover { background: #ecf2f5; }
+.class-content { min-width: 0; }
+.class-content > .class-panel:first-child { margin-top: 0; }
+.progress-heading { display: flex; justify-content: space-between; align-items: start; gap: 20px; margin-bottom: 18px; }
+.progress-heading h2 { font-size: 24px; margin-bottom: 0; }
+.progress-heading p, .progress-chart p, .progress-note { color: #657888; font-size: 13px; }
+.progress-heading .class-field { width: 280px; flex-shrink: 0; }
+.progress-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.progress-students { min-width: 0; }
+.progress-list-heading { padding: 18px; background: white; border: 1px solid #e2e9ef; border-radius: 14px 14px 0 0; display: flex; align-items: center; gap: 16px; justify-content: space-between; }
+.progress-list-heading h3, .progress-chart h3 { font-weight: 700; font-size: 16px; }
+.progress-list-heading h3 span { color: #205d7b; background: #ecf2f5; padding: 2px 7px; border-radius: 7px; }
+.progress-list-heading input { max-width: 200px !important; font-size: 13px !important; }
+.progress-students .class-table { border: 1px solid #e2e9ef; border-top: 0; border-radius: 0 0 14px 14px; }
+.progress-students table { min-width: 480px; font-size: 13px; }
+.progress-students th { background: #f0f5f8; font-size: 12px; }
+.progress-students td { vertical-align: top; }
+.progress-students td:first-child { width: 40%; }
+.progress-students summary { padding: 0 !important; }
+.progress-meter { height: 5px; background: #e8eef2; border-radius: 8px; margin-top: 9px; width: 85px; }
+.progress-meter i { display: block; height: 100%; background: #4389c7; border-radius: inherit; }
+.progress-task-details > div { display: grid; gap: 4px; padding: 12px 0; border-bottom: 1px solid #e2e9ef; }
+.progress-charts { display: grid; gap: 18px; }
+.progress-chart { background: white; border: 1px solid #dce5e9; border-radius: 16px; padding: 20px; min-width: 0; }
+.progress-donut { width: 166px; height: 166px; border-radius: 50%; margin: 22px auto; display: grid; place-items: center; }
+.progress-donut > div { border-radius: 50%; background: white; width: 124px; height: 124px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.progress-donut strong { font-size: 30px; }
+.progress-donut span { font-size: 12px; color: #657888; }
+.progress-legend { list-style: none; padding: 0; display: grid; gap: 12px; font-size: 13px; }
+.progress-legend li { display: flex; align-items: center; gap: 8px; }
+.progress-legend li i { width: 9px; height: 9px; border-radius: 50%; }
+.progress-legend li span { flex: 1; }
+.progress-columns { display: flex; gap: 18px; overflow-x: auto; border-bottom: 1px solid #dce5e9; padding: 12px 6px; }
+.progress-column { flex: 1 0 42px; text-align: center; font-size: 12px; }
+.progress-column-track { height: 120px; width: 28px; margin: 8px auto; background: #edf3f7; border-radius: 5px; display: flex; align-items: end; overflow: hidden; }
+.progress-column-track i { display: block; width: 100%; background: #4389c7; border-radius: 5px 5px 0 0; }
+.progress-task-key { font-size: 12px; color: #657888; padding-left: 20px; list-style: decimal; margin: 14px 0; }
+.progress-task-key li { margin: 6px 0; }
+.progress-chart small { font-size: 11px; color: #657888; }
+.progress-empty { padding: 20px; }
+@media (min-width: 1600px) { .progress-layout { grid-template-columns: minmax(0,1fr) 350px; } }
+@media (max-width: 1150px) { .progress-layout { grid-template-columns: minmax(0,1fr); } .progress-charts { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 700px) { .classroom.classroom-wide { padding: 20px 12px; } .class-workspace { grid-template-columns: minmax(0,1fr); gap: 18px; } .class-sidebar.class-tabs { position: static; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; } .class-sidebar button { white-space: nowrap; flex-shrink: 0; } .progress-heading { flex-direction: column; } .progress-heading .class-field { width: 100%; } .progress-charts { grid-template-columns: minmax(0,1fr); } .progress-list-heading { flex-direction: column; align-items: stretch; } .progress-list-heading input { max-width: 100% !important; } }

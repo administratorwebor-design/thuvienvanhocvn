@@ -1,5 +1,6 @@
 // Recovered from the surviving frontend bundle; local variable names are not original.
 import { useAuth } from './useAuth.js';
+import { MaterialActions } from './MaterialActions.jsx';
 import { useNavigate, vp, React, useQuery, apiClient, jsxRuntime, Ld, Rd, Ke, Hl, Fs, On, gr, Vl, Bn, Ya, Ka, _r } from './runtime.js';
 function QuizzesPage() {
   const {
@@ -173,7 +174,7 @@ function QuizzesPage() {
               }), jsxRuntime.jsx("h3", {
                 className: "font-medium text-gray-900 line-clamp-1",
                 children: z.title
-              }), jsxRuntime.jsx("span", {
+              }), jsxRuntime.jsx(MaterialActions, { kind: 'quizzes', item: z }), jsxRuntime.jsx("span", {
                 className: "hidden md:inline-block text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded mt-1",
                 children: z.category?.name
               })]

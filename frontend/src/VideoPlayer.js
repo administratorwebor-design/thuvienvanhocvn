@@ -1,5 +1,6 @@
 // Recovered from the surviving frontend bundle; local variable names are not original.
 import { useAuth } from './useAuth.js';
+import { videoLink } from '../../shared/video-links.js';
 import { React, pe, jsxRuntime } from './runtime.js';
 function VideoPlayer({
   url: t,
@@ -15,6 +16,8 @@ function VideoPlayer({
     d = r?.role === "admin",
     f = _ => _.includes("youtube.com") || _.includes("youtu.be") ? "youtube" : _.includes("vimeo.com") ? "vimeo" : _.includes("drive.google.com") ? "drive" : _.match(/\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i) || _.includes("minio") || _.includes(".derapi.") || _.includes("api-minio") || _.includes(":9000") || _.includes("/videos/") ? "direct" : "embed",
     p = _ => {
+      try { return videoLink(_, 'drive').embed; } catch {}
+      try { return videoLink(_, 'youtube').embed; } catch {}
       const k = _.match(/\/d\/([a-zA-Z0-9_-]+)/);
       return k ? `https://drive.google.com/file/d/${k[1]}/preview` : _.includes("youtube.com/watch") ? `https://www.youtube.com/embed/${_.split("v=")[1]?.split("&")[0]}` : _.includes("youtu.be/") ? `https://www.youtube.com/embed/${_.split("youtu.be/")[1]?.split("?")[0]}` : _.includes("vimeo.com/") ? `https://player.vimeo.com/video/${_.split("vimeo.com/")[1]?.split("?")[0]}` : _;
     },
@@ -33,7 +36,7 @@ function VideoPlayer({
       poster: n,
       sources: [{
         src: t,
-        type: "video/mp4"
+        type: /\.webm(?:\?|$)/i.test(t) ? "video/webm" : "video/mp4"
       }],
       controlBar: {
         children: ["playToggle", "volumePanel", "currentTimeDisplay", "timeDivider", "durationDisplay", "progressControl", "remainingTimeDisplay", "playbackRateMenuButton", "fullscreenToggle"]

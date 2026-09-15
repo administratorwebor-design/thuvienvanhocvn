@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const collections = ['users', 'categories', 'banners', 'storybooks', 'videos', 'elearnings', 'quizzes', 'quizResults', 'storybookQuizResults', 'flashcards', 'resetTokens', 'verificationTokens', 'storyQuizSessions', 'quizAttempts'];
+export const collections = ['users', 'categories', 'banners', 'storybooks', 'videos', 'elearnings', 'quizzes', 'quizResults', 'storybookQuizResults', 'flashcards', 'resetTokens', 'verificationTokens', 'storyQuizSessions', 'quizAttempts', 'classes', 'memberships', 'assignments', 'classAttempts', 'classResults', 'classActivity', 'storybookDrafts', 'lessonDrafts'];
 export function createStore(directory) {
   fs.mkdirSync(directory, { recursive: true });
   const sql = new DatabaseSync(path.join(directory, 'library.sqlite'));

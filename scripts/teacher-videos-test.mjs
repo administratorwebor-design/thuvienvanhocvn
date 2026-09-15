@@ -1,0 +1,38 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {startTestServer} from '../tests/support.mjs';
+import {videoLink} from '../shared/video-links.js';
+for(const url of ['https://youtu.be/dQw4w9WgXcQ','https://www.youtube.com/shorts/dQw4w9WgXcQ','https://www.youtube.com/embed/dQw4w9WgXcQ'])assert.equal(videoLink(url,'youtube').id,'dQw4w9WgXcQ');
+for(const url of ['javascript:alert(1)','https://youtube.com.evil.test/watch?v=dQw4w9WgXcQ','https://evil.test/youtu.be/dQw4w9WgXcQ'])assert.throws(()=>videoLink(url,'youtube'));
+assert.throws(()=>videoLink('https://drive.google.com/drive/folders/123456789012','drive'));
+assert(videoLink('https://drive.google.com/open?id=123456789012&resourcekey=abc-123','drive').embed.endsWith('/preview?resourcekey=abc-123'));
+const s=await startTestServer({classrooms:true,seed:false});
+const browser=await chromium.launch({headless:true,executablePath:process.env.BROWSER_PATH||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+try{
+  for(const username of ['video-teacher','video-other'])await s.request('POST','/teachers',{username,fullName:username,password:'TeacherTest!2026'},s.adminToken);
+  const token=(await s.request('POST','/auth/login',{username:'video-teacher',password:'TeacherTest!2026'})).data.token;
+  const other=(await s.request('POST','/auth/login',{username:'video-other',password:'TeacherTest!2026'})).data.token;
+  const c=(await s.request('POST','/classes',{name:'6A · Video minh họa'},token)).data.classroom,base=`/classes/${c._id}/teacher-videos`;
+  assert.equal((await s.request('GET',base,undefined,other)).status,403);
+  assert.equal((await s.request('POST',base,{title:'Bad',source:'youtube',url:'https://evil.test'},token)).status,400);
+  const bad=new FormData();bad.set('title','Bad file');bad.set('source','upload');bad.set('file',new Blob(['not video']),'test.mp4');assert.equal((await s.request('POST',base,bad,token)).status,400);
+  assert.equal(fs.readdirSync(s.env.UPLOAD_DIR).length,0);
+  const p=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(15000);
+  await p.route('https://www.youtube.com/embed/**',r=>r.fulfill({contentType:'text/html',body:'<p>YouTube embed fixture</p>'}));
+  await p.route('https://drive.google.com/**',r=>r.fulfill({contentType:'text/html',body:'<p>Drive embed fixture</p>'}));
+  await p.goto(s.base+'/login');await p.getByPlaceholder('username').fill('video-teacher');await p.locator('input[type=password]').fill('TeacherTest!2026');await p.locator('button[type=submit]').click();await p.waitForURL(s.base+'/');
+  await p.goto(s.base+'/classes/'+c._id);await p.locator('.class-sidebar').getByRole('button',{name:'Video minh họa',exact:true}).click();
+  await p.getByLabel('Tiêu đề video',{exact:true}).fill('Video YouTube của lớp');await p.getByLabel('Mô tả video').fill('Xem video và kể lại câu chuyện.');await p.getByRole('radio',{name:/YouTube/}).check();await p.getByLabel('Link YouTube',{exact:true}).fill('https://youtu.be/dQw4w9WgXcQ');await p.getByLabel('Giao video này cho lớp ngay sau khi lưu').check();await p.getByRole('button',{name:'Lưu & giao cho lớp',exact:true}).click();await p.getByText('Đã lưu video và giao cho lớp.',{exact:true}).waitFor();
+  await p.getByRole('button',{name:'Video mới'}).click();await p.getByRole('radio',{name:/Google Drive/}).check();await p.getByLabel('Tiêu đề video',{exact:true}).fill('Video Drive');await p.getByLabel('Link Google Drive',{exact:true}).fill('https://drive.google.com/file/d/123456789012345/view?resourcekey=abc-123');await p.getByRole('button',{name:'Lưu video',exact:true}).click();await p.getByText('Đã lưu video vào thư viện. Có thể giao trong Bài được giao.',{exact:true}).waitFor();assert((await p.locator('iframe[title="Xem video đã lưu"]').getAttribute('src')).endsWith('/preview?resourcekey=abc-123'));
+  await p.getByRole('button',{name:'Video mới'}).click();await p.getByRole('radio',{name:/Tải từ máy/}).check();await p.getByLabel('Tiêu đề video',{exact:true}).fill('Video tải từ máy');
+  const data=await p.evaluate(async()=>{const canvas=document.createElement('canvas');canvas.width=320;canvas.height=180;const context=canvas.getContext('2d'),stream=canvas.captureStream(10),rec=new MediaRecorder(stream,{mimeType:'video/webm'}),chunks=[];rec.ondataavailable=e=>chunks.push(e.data);const done=new Promise(resolve=>rec.onstop=async()=>resolve(Array.from(new Uint8Array(await new Blob(chunks).arrayBuffer()))));rec.start();for(let i=0;i<4;i++){context.fillStyle=i%2?'#34789a':'#79a5bc';context.fillRect(0,0,320,180);await new Promise(r=>setTimeout(r,100));}rec.stop();stream.getTracks().forEach(t=>t.stop());return done;});
+  await p.getByLabel('Chọn video từ máy',{exact:false}).setInputFiles({name:'lesson.webm',mimeType:'video/webm',buffer:Buffer.from(data)});await p.getByRole('button',{name:'Lưu video',exact:true}).click();await p.getByText('Đã lưu video vào thư viện. Có thể giao trong Bài được giao.',{exact:true}).waitFor();await p.waitForFunction(()=>document.querySelector('video[title="Video đã lưu"]')?.readyState>=1);
+  const videos=(await s.request('GET',base,undefined,token)).data.videos;assert.equal(videos.length,3);assert.equal(videos[0].description,'Xem video và kể lại câu chuyện.');
+  const drive=videos.find(v=>v.source==='drive');const assignment=(await s.request('POST',`/classes/${c._id}/assignments`,{kind:'videos',resourceId:drive._id},token)).data.assignment;
+  fs.mkdirSync('artifacts/teacher-videos',{recursive:true});await p.screenshot({path:'artifacts/teacher-videos/desktop.png',fullPage:true});await p.setViewportSize({width:390,height:844});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.screenshot({path:'artifacts/teacher-videos/mobile.png',fullPage:true});
+  await p.goto(s.base+'/assignments/'+assignment._id);await p.locator('.class-video iframe').waitFor();assert((await p.locator('.class-video iframe').getAttribute('src')).includes('/preview?resourcekey=abc-123'));
+  await s.request('POST','/auth/register',{username:'video-student',password:'StudentTest!2026',fullName:'Học sinh'});const student=(await s.request('POST','/auth/login',{username:'video-student',password:'StudentTest!2026'})).data;
+  assert.equal((await s.request('GET',base,undefined,student.token)).status,403);await s.request('POST','/classes/join',{code:c.joinCode},student.token);await s.request('PATCH',`/classes/${c._id}/members/${student.user._id}`,{status:'approved'},token);assert.equal((await s.request('GET','/assignments/'+assignment._id,undefined,student.token)).status,200);
+  assert.deepEqual(errors,[]);console.log('PASS: all three sources, actual WebM playback, title/description, assignment, ownership, invalid links/files and cleanup, Drive embed, mobile layout. External embeds mocked.');
+}finally{await browser.close();await s.stop();}
