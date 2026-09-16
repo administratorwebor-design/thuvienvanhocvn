@@ -12,8 +12,9 @@ try{
 const p=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
 const rows=JSON.parse(fs.readFileSync('docs/illustrated-lessons.json','utf8'));
 for(const [li,row] of rows.entries()){
-await p.goto(`http://127.0.0.1:${server.address().port}${row.url}`);
+await p.goto(`http://127.0.0.1:${server.address().port}${row.url}`,{waitUntil:'domcontentloaded'});
 const lesson=await p.evaluate(()=>window.ILLUSTRATED_LESSON);
+if(lesson.video){assert.equal(await p.locator('.topic-video iframe').getAttribute('src'),`https://www.youtube.com/embed/${lesson.video.id}`);assert.equal(await p.locator('.topic-video a').getAttribute('href'),`https://www.youtube.com/watch?v=${lesson.video.id}`);}else assert.equal(await p.locator('.topic-video').count(),0);
 const hashes=new Set(lesson.images.map(src=>createHash('sha256').update(fs.readFileSync(path.join(root,src))).digest('hex')));assert.equal(hashes.size,lesson.images.length);
 for(let i=0;i<lesson.images.length;i++){await p.locator('nav button').nth(i).click();await p.locator('article img').evaluate(i=>i.decode());}
 await p.locator('textarea').fill('Em sẽ quan tâm và chia sẻ với bạn.');await p.reload();await p.locator('nav button').last().click();assert.equal(await p.locator('textarea').inputValue(),'Em sẽ quan tâm và chia sẻ với bạn.');

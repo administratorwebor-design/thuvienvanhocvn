@@ -21,6 +21,7 @@ import { registerTeacherVideos } from './teacher-videos.js';
 import { registerElearningStudio } from './elearning-studio.js';
 import { registerTeacherAssessments } from './teacher-assessments.js';
 import { registerTeacherLibrary } from './teacher-library.js';
+import { registerDataTransfer } from './data-transfer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -181,6 +182,7 @@ function fileUrl(file) {
 }
 
 registerClassrooms(app, { auth, admin, readDb, writeDb });
+registerDataTransfer(app, { auth, admin, readDb, writeDb, dataDir: DATA_DIR, uploadDir: UPLOAD_DIR });
 registerStorybookStudio(app, { auth, aiLimit, readDb, writeDb, uploadDir: UPLOAD_DIR });
 registerTeacherVideos(app, { auth, readDb, writeDb, uploadDir: UPLOAD_DIR });
 registerElearningStudio(app, { auth, aiLimit, readDb, writeDb, uploadDir: UPLOAD_DIR });

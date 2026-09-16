@@ -7,10 +7,10 @@ export function MaterialCard({kind,item,to,children,className}){
   return <article className={className}><Link to={to} className="material-card-link">{children}</Link><MaterialActions kind={kind} item={item}/></article>;
 }
 export function MaterialActions({kind,item}){
-  const {user}=useAuth(),cache=useQueryClient(),staff=['teacher','admin'].includes(user?.role);
-  const {data}=useQuery({queryKey:['material-permissions',kind,user?._id],enabled:staff,queryFn:async()=>(await apiClient.get('/teacher-library/'+kind)).data});
+  const {user}=useAuth(),cache=useQueryClient(),staff=['teacher','admin'].includes(user?.role),isAdmin=user?.role==='admin';
+  const {data}=useQuery({queryKey:['material-permissions',kind,user?._id,user?.role],enabled:user?.role==='teacher',queryFn:async()=>(await apiClient.get('/teacher-library/'+kind)).data});
   const [mode,setMode]=React.useState(null);
-  if(!staff||!data?.ids?.includes(item._id))return null;
+  if(!staff||(!isAdmin&&!data?.ids?.includes(item._id)))return null;
   return <div className="material-actions" onClick={e=>{e.preventDefault();e.stopPropagation();}}>
     <button type="button" onClick={()=>setMode('edit')} aria-label={'Chỉnh sửa '+item.title}>Chỉnh sửa</button>
     <button type="button" className="material-delete" onClick={()=>setMode('delete')} aria-label={'Xóa '+item.title}>Xóa</button>

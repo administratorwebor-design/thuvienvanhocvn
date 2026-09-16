@@ -76,6 +76,12 @@
       "_id": "demo-ai-literature",
       "name": "Video minh họa văn học",
       "order": 10
+    },
+    {
+      "_id": "user-literature-videos",
+      "name": "Video theo chủ đề văn học",
+      "isActive": true,
+      "order": 9
     }
   ],
   "banners": [
@@ -184,6 +190,97 @@
       "order": 0,
       "duration": 155,
       "sourceUrl": "https://www.youtube.com/watch?v=WBqijL_58-w"
+    },
+    {
+      "_id": "user-topic-de-men",
+      "title": "Bài học đường đời đầu tiên",
+      "author": "Trương Thị Lan Phương",
+      "description": "Dế Mèn, tình bạn và trách nhiệm.",
+      "category": "user-literature-videos",
+      "url": "https://www.youtube.com/watch?v=6jpGbV1UZ18",
+      "sourceUrl": "https://www.youtube.com/watch?v=6jpGbV1UZ18",
+      "thumbnail": "https://i.ytimg.com/vi/6jpGbV1UZ18/hqdefault.jpg",
+      "isActive": true,
+      "order": -30,
+      "viewCount": 0
+    },
+    {
+      "_id": "user-topic-hoang-tu-be",
+      "title": "Nếu cậu muốn có một người bạn",
+      "author": "Hạt Nắng",
+      "description": "Video tóm tắt Hoàng tử bé và các bài học cuộc sống, dùng tham khảo cho chủ đề tình bạn; không phải bản đọc riêng đoạn trích Nếu cậu muốn có một người bạn.",
+      "category": "user-literature-videos",
+      "url": "https://www.youtube.com/watch?v=DlZb-ijwbXw",
+      "sourceUrl": "https://www.youtube.com/watch?v=DlZb-ijwbXw",
+      "thumbnail": "https://i.ytimg.com/vi/DlZb-ijwbXw/hqdefault.jpg",
+      "isActive": true,
+      "order": -29,
+      "viewCount": 0
+    },
+    {
+      "_id": "user-topic-may-va-song",
+      "title": "Mây và sóng",
+      "author": "Trang Văn - vietlanglit (Ms. Ngoc Phan)",
+      "description": "Tình mẫu tử và trí tưởng tượng.",
+      "category": "user-literature-videos",
+      "url": "https://www.youtube.com/watch?v=86Y4F1evGcg",
+      "sourceUrl": "https://www.youtube.com/watch?v=86Y4F1evGcg",
+      "thumbnail": "https://i.ytimg.com/vi/86Y4F1evGcg/hqdefault.jpg",
+      "isActive": true,
+      "order": -28,
+      "viewCount": 0
+    },
+    {
+      "_id": "user-topic-ban-diem",
+      "title": "Cô bé bán diêm",
+      "author": "Câu chuyện cổ tích việt nam",
+      "description": "Ước mơ nhỏ bé và lòng nhân ái.",
+      "category": "user-literature-videos",
+      "url": "https://www.youtube.com/watch?v=A8QaZ0uQgdI",
+      "sourceUrl": "https://www.youtube.com/watch?v=A8QaZ0uQgdI",
+      "thumbnail": "https://i.ytimg.com/vi/A8QaZ0uQgdI/hqdefault.jpg",
+      "isActive": true,
+      "order": -27,
+      "viewCount": 0
+    },
+    {
+      "_id": "user-topic-gio-lanh",
+      "title": "Gió lạnh đầu mùa",
+      "author": "Trang Sách Lên Hình",
+      "description": "Sự sẻ chia và tình người.",
+      "category": "user-literature-videos",
+      "url": "https://www.youtube.com/watch?v=tFFfeKO4zx4",
+      "sourceUrl": "https://www.youtube.com/watch?v=tFFfeKO4zx4",
+      "thumbnail": "https://i.ytimg.com/vi/tFFfeKO4zx4/hqdefault.jpg",
+      "isActive": true,
+      "order": -26,
+      "viewCount": 0
+    },
+    {
+      "_id": "user-topic-cay-tre-tram-dot",
+      "title": "Cây tre trăm đốt",
+      "author": "Thế Giới Truyện",
+      "description": "Kể chuyện cổ tích bằng AI: Cây tre trăm đốt. Đây là truyện cổ tích, không phải văn bản Cây tre Việt Nam của Thép Mới.",
+      "category": "user-literature-videos",
+      "url": "https://www.youtube.com/watch?v=e-vIIPtRbkw",
+      "sourceUrl": "https://www.youtube.com/watch?v=e-vIIPtRbkw",
+      "thumbnail": "https://i.ytimg.com/vi/e-vIIPtRbkw/hqdefault.jpg",
+      "isActive": true,
+      "order": -25,
+      "viewCount": 0
+    },
+    {
+      "_id": "user-topic-co-to",
+      "title": "Cô Tô",
+      "author": "Phoviz",
+      "description": "Video flycam giới thiệu cảnh quan Cô Tô, dùng minh họa vẻ đẹp biển đảo; không phải bài giảng phân tích văn bản Cô Tô.",
+      "category": "user-literature-videos",
+      "url": "https://www.youtube.com/watch?v=FCAToDCdgI4",
+      "sourceUrl": "https://www.youtube.com/watch?v=FCAToDCdgI4",
+      "thumbnail": "https://i.ytimg.com/vi/FCAToDCdgI4/hqdefault.jpg",
+      "isActive": true,
+      "order": -24,
+      "viewCount": 0
     }
   ],
   "elearnings": [
@@ -286,6 +383,19 @@
       "source": "Ba lưỡi rìu — Truyện dân gian",
       "isActive": true,
       "order": -16,
+      "viewCount": 0
+    },
+    {
+      "_id": "premium-gio-lanh-dau-mua",
+      "title": "Gió lạnh đầu mùa · Một chiếc áo, một tấm lòng",
+      "category": "demo-kntt-6",
+      "description": "Bài mẫu hoàn chỉnh: 9 chặng học, video định hướng, sơ đồ sự việc, khám phá nhân vật, 5 câu đọc hiểu có phản hồi và đoạn viết vận dụng. Lưu tiến độ, ghi chép và tải bài viết.",
+      "url": "/reference/gio-lanh-elearning/index.html",
+      "storyPath": "/reference/gio-lanh-elearning/index.html",
+      "thumbnail": "/reference/gio-lanh-elearning/cover.jpg",
+      "source": "Thạch Lam · Ngữ văn 6, tập một, Kết nối tri thức với cuộc sống. Video: Trang Sách Lên Hình.",
+      "order": -100,
+      "isActive": true,
       "viewCount": 0
     }
   ],

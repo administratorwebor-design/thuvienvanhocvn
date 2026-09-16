@@ -1,0 +1,55 @@
+[
+  {
+    "key": "de-men",
+    "id": "6jpGbV1UZ18",
+    "title": "Bài học đường đời đầu tiên",
+    "description": "Dế Mèn, tình bạn và trách nhiệm.",
+    "lesson": "de-men-trach-nhiem",
+    "author": "Trương Thị Lan Phương"
+  },
+  {
+    "key": "hoang-tu-be",
+    "id": "DlZb-ijwbXw",
+    "title": "Nếu cậu muốn có một người bạn",
+    "description": "Video tóm tắt Hoàng tử bé và các bài học cuộc sống, dùng tham khảo cho chủ đề tình bạn; không phải bản đọc riêng đoạn trích Nếu cậu muốn có một người bạn.",
+    "author": "Hạt Nắng"
+  },
+  {
+    "key": "may-va-song",
+    "id": "86Y4F1evGcg",
+    "title": "Mây và sóng",
+    "description": "Tình mẫu tử và trí tưởng tượng.",
+    "lesson": "may-song-tuong-tuong",
+    "author": "Trang Văn - vietlanglit (Ms. Ngoc Phan)"
+  },
+  {
+    "key": "ban-diem",
+    "id": "A8QaZ0uQgdI",
+    "title": "Cô bé bán diêm",
+    "description": "Ước mơ nhỏ bé và lòng nhân ái.",
+    "lesson": "diem-se-chia",
+    "author": "Câu chuyện cổ tích việt nam"
+  },
+  {
+    "key": "gio-lanh",
+    "id": "tFFfeKO4zx4",
+    "title": "Gió lạnh đầu mùa",
+    "description": "Sự sẻ chia và tình người.",
+    "lesson": "gio-lanh-nhan-ai",
+    "author": "Trang Sách Lên Hình"
+  },
+  {
+    "key": "cay-tre-tram-dot",
+    "id": "e-vIIPtRbkw",
+    "title": "Cây tre trăm đốt",
+    "description": "Kể chuyện cổ tích bằng AI: Cây tre trăm đốt. Đây là truyện cổ tích, không phải văn bản Cây tre Việt Nam của Thép Mới.",
+    "author": "Thế Giới Truyện"
+  },
+  {
+    "key": "co-to",
+    "id": "FCAToDCdgI4",
+    "title": "Cô Tô",
+    "description": "Video flycam giới thiệu cảnh quan Cô Tô, dùng minh họa vẻ đẹp biển đảo; không phải bài giảng phân tích văn bản Cô Tô.",
+    "author": "Phoviz"
+  }
+]

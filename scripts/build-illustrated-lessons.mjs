@@ -3,6 +3,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const base=path.join(root,'frontend/public/reference/illustrated-lessons');
+const topicVideos=JSON.parse(fs.readFileSync(path.join(root,'docs/user-topic-videos.json'),'utf8'));
 const page=(title,body,prompt)=>({title,body,prompt});
 const question=(text,options,answer,explanation)=>({text,options,answer,explanation});
 const lessons=[
@@ -34,6 +35,7 @@ const lessons=[
 ];
 fs.mkdirSync(base,{recursive:true});
 for(const lesson of lessons){
+ lesson.video=topicVideos.find(v=>v.lesson===lesson.id)||null;
  lesson.images=lesson.images.map(name=>`/reference/${lesson.folder?lesson.folder+'/':''}${name}`);
  lesson.images.forEach(src=>{if(!fs.existsSync(path.join(root,'frontend/public',src)))throw Error(`Missing ${src}`);});
  const dir=path.join(base,lesson.id);fs.mkdirSync(dir,{recursive:true});
