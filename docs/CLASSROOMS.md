@@ -11,7 +11,8 @@ Tài khoản mới được tự học và dùng mọi chức năng thư viện 
 5. Tab **Bài được giao**: chọn Storybook, video, E-learning hoặc đề từ kho có sẵn. Có thể đặt hạn nộp và tối đa 1–5 lượt kiểm tra. Thu hồi bài ngăn truy cập mới nhưng giữ lịch sử.
 6. Học sinh mở bài trong lớp. Đề có thời gian do server lưu; tải lại trang không đặt lại đồng hồ. Câu trả lời nháp được lưu trên trình duyệt của tài khoản đó. Lượt hết giờ cũng tính vào số lượt được giao.
 7. Giáo viên xem **Bảng điểm**, mở từng bài, chấm tự luận và nhận xét. **Lưu chấm nháp** chưa trả điểm tự luận. **Chốt điểm và trả bài** yêu cầu chấm đủ câu tự luận. Học sinh xem điểm cuối và nhận xét ở bảng điểm lớp hoặc ngay trong bài được giao.
-8. Bảng điểm có học sinh chưa nộp, trạng thái từng bài và chi tiết từng lượt; tải CSV có UTF-8 BOM để mở bằng Excel.
+8. Bảng điểm có học sinh chưa nộp, trạng thái từng bài và chi tiết từng lượt. Nút tải xuất Excel `.xlsx` có hai trang: **Bảng điểm** (mỗi học sinh một dòng, mỗi đề một cột, điểm quy về thang 10 của lượt nộp mới nhất) và **Chi tiết lượt làm** (giữ mọi lượt nộp). Có tiêu đề lớp/giáo viên, màu bảng, lọc, cố định hàng tiêu đề và bố cục in ngang. Điểm chưa chốt không tính vào trung bình; bài chưa nộp không bị coi là điểm 0. Endpoint CSV cũ vẫn được giữ để tương thích.
+9. Trong **Chấm tự luận**, bấm **Chấm bài** sẽ mở bài làm ngay đầu danh sách và chuyển màn hình tới phần chấm. Giáo viên nhập điểm, nhận xét rồi lưu nháp hoặc chốt trả bài.
 
 ## Chỉnh sửa và xóa học liệu trên menu thư viện
 

@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { gradeQuiz, learnerQuiz } from "./quizzes.js";
+import {gradeWorkbook} from './grade-workbook.js';
 import { validatePassword } from "./accounts.js";
 
 export const classroomsEnabled = () =>
@@ -630,6 +631,13 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
     r.results = r.answers;
     (await writeDb(db));
     res.json({ result: r });
+  });
+  app.get('/api/classes/:id/grades.xlsx',auth(),staff,async(req,res)=>{
+    const db=await readDb(),c=classroom(db,req.params.id,req.user,true);
+    const buffer=await gradeWorkbook(db,c);
+    res.set('Cache-Control','no-store');
+    res.attachment('bang-diem.xlsx');
+    res.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').send(Buffer.from(buffer));
   });
   app.get("/api/classes/:id/grades.csv", auth(), staff, async (req, res) => {
     const db = (await readDb()),

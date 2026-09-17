@@ -442,13 +442,15 @@ function GradingTable({ results, studentName, action }) {
   const [selected, setSelected] = React.useState(null);
   const rows = results.filter(r => r.answers.some(a => a.questionType === 'essay')).sort((a,b) => Number(!!a.publishedAt)-Number(!!b.publishedAt));
   const active = rows.find(r => r._id === selected);
+  const editorRef=React.useRef(null);
+  React.useEffect(()=>{if(selected){editorRef.current?.scrollIntoView({block:'start',behavior:'instant'});editorRef.current?.focus({preventScroll:true});}},[selected]);
   return <section>
     <h2>Chấm tự luận</h2>
     <p>Chọn bài để xem câu trả lời, cho điểm tự luận và trả kết quả cho học sinh.</p>
+    {active && <section ref={editorRef} tabIndex={-1} style={{scrollMarginTop:90}} className="class-panel" aria-label="Bài làm cần chấm"><button className="secondary" onClick={()=>setSelected(null)}>Đóng bài làm</button><h3>{studentName(active.user)} · {active.quiz.title}</h3><GradeEditor key={active._id+String(active.gradedAt)} result={active} action={action} /></section>}
     <div className="class-table"><table><thead><tr><th>Học sinh / Bài kiểm tra</th><th>Trắc nghiệm</th><th>Tự luận</th><th>Tổng điểm</th><th>Thao tác</th></tr></thead>
     <tbody>{rows.map(r => <tr key={r._id}><td><strong>{studentName(r.user)}</strong><br />{r.quiz.title}<br /><small>{fmt(r.submittedAt)}</small></td><td>{r.mcScore}/{r.answers.filter(a=>a.questionType!=='essay').reduce((s,a)=>s+a.maxPoints,0)}</td><td>{r.publishedAt ? `Đã chấm · ${r.essayScore}/${r.answers.filter(a=>a.questionType==='essay').reduce((s,a)=>s+a.maxPoints,0)}` : 'Chưa chấm'}</td><td>{r.publishedAt ? `${r.totalScore}/${r.maxScore}` : 'Chờ chấm tự luận'}</td><td><button onClick={()=>setSelected(r._id)}>{r.publishedAt?'Xem bài':'Chấm bài'}</button></td></tr>)}</tbody></table></div>
     {!rows.length && <p>Chưa có bài tự luận được nộp.</p>}
-    {active && <section className="class-panel" aria-label="Bài làm cần chấm"><button className="secondary" onClick={()=>setSelected(null)}>Đóng bài làm</button><h3>{studentName(active.user)} · {active.quiz.title}</h3><GradeEditor key={active._id+String(active.gradedAt)} result={active} action={action} /></section>}
   </section>;
 }
 function GradeEditor({ result, action }) {
@@ -573,13 +575,13 @@ export function ClassroomDetail() {
       members.find((m) => m.studentId === id)?.student?.fullName || "Học sinh";
   const download = async () => {
     try {
-      const r = await apiClient.get(`/classes/${id}/grades.csv`, {
+      const r = await apiClient.get(`/classes/${id}/grades.xlsx`, {
         responseType: "blob",
       });
       const url = URL.createObjectURL(r.data),
         link = document.createElement("a");
       link.href = url;
-      link.download = "bang-diem.csv";
+      link.download = "bang-diem.xlsx";
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
@@ -808,7 +810,7 @@ export function ClassroomDetail() {
           {staff && <GradeCharts members={members} assignments={assignments} results={results} />}
           {staff && (
             <button onClick={download}>
-              Tải bảng điểm CSV (mở bằng Excel)
+              Tải bảng điểm Excel (.xlsx)
             </button>
           )}
           {staff && (
