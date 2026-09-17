@@ -186,7 +186,7 @@ registerDataTransfer(app, { auth, admin, readDb, writeDb, dataDir: DATA_DIR, upl
 registerStorybookStudio(app, { auth, aiLimit, readDb, writeDb, uploadDir: UPLOAD_DIR });
 registerTeacherVideos(app, { auth, readDb, writeDb, uploadDir: UPLOAD_DIR });
 registerElearningStudio(app, { auth, aiLimit, readDb, writeDb, uploadDir: UPLOAD_DIR });
-registerTeacherAssessments(app, { auth, readDb, writeDb });
+registerTeacherAssessments(app, { auth, aiLimit, readDb, writeDb });
 
 function pickBody(req, fields) {
   const out = {};

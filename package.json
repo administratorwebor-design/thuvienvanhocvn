@@ -20,6 +20,7 @@
     "test:elearning-studio": "npm run build && node scripts/elearning-studio-test.mjs",
     "test:lesson-ai": "npm run build && node scripts/lesson-ai-test.mjs",
     "test:teacher-assessments": "npm run build && node scripts/teacher-assessments-test.mjs",
+    "test:teacher-assessments-ai": "npm run build && node scripts/teacher-assessments-ai-test.mjs",
     "test:teacher-library": "npm run build && node scripts/teacher-library-browser-test.mjs",
     "recover": "node scripts/recover-frontend.mjs",
     "seed:reference": "node scripts/seed-reference.mjs",

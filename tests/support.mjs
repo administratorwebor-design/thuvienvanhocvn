@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
-export async function startTestServer({ ai = false, seed = true, classrooms = false, studio = false, lessonGeneration = false } = {}) {
+export async function startTestServer({ ai = false, seed = true, classrooms = false, studio = false, lessonGeneration = false, assessmentResponse } = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'literature-test-'));
   const probe = http.createServer(); probe.listen(0, '127.0.0.1'); await once(probe, 'listening');
   const port = probe.address().port; await new Promise(resolve => probe.close(resolve));
@@ -14,6 +14,10 @@ export async function startTestServer({ ai = false, seed = true, classrooms = fa
   const fakeAi = http.createServer(async (req, res) => {
     let body = ''; for await (const chunk of req) body += chunk;
     const requestBody=JSON.parse(body),prompt=requestBody.contents[0].parts[0].text;
+    if(assessmentResponse && prompt.startsWith('TEACHER_ASSESSMENT_V1')) {
+      const text=assessmentResponse(prompt);
+      res.setHeader('Content-Type','application/json');res.end(JSON.stringify({candidates:[{content:{parts:[{text}]}}]}));return;
+    }
     if(lessonGeneration)aiRequests.push(requestBody);
     if(lessonGeneration&&prompt.startsWith('LESSON_GENERATION_V1')){
       const input=JSON.parse(prompt.split('TƯ LIỆU: ')[1]);
