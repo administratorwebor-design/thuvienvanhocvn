@@ -26,12 +26,12 @@ export function inspectTransfer(buffer){
 }
 export function registerDataTransfer(app,{auth,admin,readDb,writeDb,dataDir,uploadDir}){
  const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:64*1024*1024,files:1}});
- app.get('/api/admin/data-transfer/export',auth(),admin,(_req,res)=>{
-  res.set('Cache-Control','no-store');res.attachment('library-backup.zip');res.type('application/zip').send(exportData(readDb(),uploadDir));
+ app.get('/api/admin/data-transfer/export',auth(),admin,async (_req,res)=>{
+  res.set('Cache-Control','no-store');res.attachment('library-backup.zip');res.type('application/zip').send(exportData((await readDb()),uploadDir));
  });
- app.post('/api/admin/data-transfer/replace',auth(),admin,upload.single('archive'),(req,res)=>{
+ app.post('/api/admin/data-transfer/replace',auth(),admin,upload.single('archive'),async (req,res)=>{
   if(req.body.confirm!=='REPLACE_ALL_DATA'||!req.file)fail('Thiếu xác nhận thay thế toàn bộ dữ liệu.');
-  const {zip,data}=inspectTransfer(req.file.buffer),old=readDb();
+  const {zip,data}=inspectTransfer(req.file.buffer),old=(await readDb());
   const stamp=randomUUID(),backupDir=path.join(dataDir,'transfer-backups');fs.mkdirSync(backupDir,{recursive:true});
   fs.writeFileSync(path.join(backupDir,stamp+'.zip'),exportData(old,uploadDir));
   // Stage on the same filesystem as uploads. Preserve old files outside the
@@ -43,7 +43,7 @@ export function registerDataTransfer(app,{auth,admin,readDb,writeDb,dataDir,uplo
   for(const k of ['resetTokens','verificationTokens','storyQuizSessions'])data[k]=[];
   for(const u of data.users){const prior=old.users.find(x=>x._id===u._id);u.tokenVersion=Math.max(u.tokenVersion||0,prior?.tokenVersion||0)+1;}
   const hadUploads=fs.existsSync(uploadDir);if(hadUploads)fs.renameSync(uploadDir,previous);
-  try{fs.renameSync(staging,uploadDir);for(const k of collections)old[k]=data[k];writeDb(old);}catch(error){if(fs.existsSync(uploadDir))fs.renameSync(uploadDir,staging);if(hadUploads)fs.renameSync(previous,uploadDir);throw error;}
+  try{fs.renameSync(staging,uploadDir);for(const k of collections)old[k]=data[k];(await writeDb(old));}catch(error){if(fs.existsSync(uploadDir))fs.renameSync(uploadDir,staging);if(hadUploads)fs.renameSync(previous,uploadDir);throw error;}
   res.set('Cache-Control','no-store').json({success:true,backupId:stamp,counts:Object.fromEntries(collections.map(k=>[k,data[k].length]))});
  });
 }

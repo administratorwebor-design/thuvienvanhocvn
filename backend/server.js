@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
 import { accountRoutes, validatePassword, normalizeEmail } from './accounts.js';
 import { createStore } from './store.js';
+import { createPostgresStore } from './postgres-store.js';
 import { normalizeQuizQuestions, learnerQuiz, badRequest } from './quizzes.js';
 import { documentText, extractCourse } from './documents.js';
 import { registerQuizRoutes } from './quiz-routes.js';
@@ -40,7 +41,13 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 loadAiSettings(DATA_DIR);
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, 'uploads');
 const DB_FILE = path.join(DATA_DIR, 'library.sqlite');
-const { readDb, writeDb } = createStore(DATA_DIR);
+const databaseDriver=process.env.DATABASE_DRIVER||'sqlite';
+if(!['sqlite','supabase'].includes(databaseDriver))throw new Error('Invalid DATABASE_DRIVER');
+const store=databaseDriver==='supabase'?await createPostgresStore({uploadDir:UPLOAD_DIR}):createStore(DATA_DIR);
+if(databaseDriver==='supabase')await store.restoreUploads();
+const { readDb, writeDb } = store;
+const persistUploads=store.persistUploads||async function(){};
+if(databaseDriver==='supabase'&&process.env.REQUIRE_EXISTING_DATA==='true'&&!(await readDb()).users.length)throw new Error('Supabase is empty. Migrate local data before deployment.');
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -50,7 +57,7 @@ const id = () => crypto.randomUUID();
 
 
 async function seedDb() {
-  const db = readDb();
+  const db = (await readDb());
   if (!db.users.some((user) => user.role === 'admin')) {
     if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD.length < 8) throw new Error('Set ADMIN_PASSWORD to at least 8 characters before first startup.');
     db.users.push({
@@ -82,7 +89,7 @@ async function seedDb() {
   for (const collection of ['storybooks', 'videos', 'elearnings', 'banners', 'quizzes']) {
     for (const item of db[collection]) applyContentDefaults(collection, item);
   }
-  writeDb(db);
+  (await writeDb(db));
 }
 
 await seedDb();
@@ -99,7 +106,7 @@ const upload = multer({
       cb(null, `${id()}-${safeName}`);
     }
   }),
-  limits: { fileSize: 300 * 1024 * 1024, files: 3, fields: 30 },
+  limits: { fileSize: (databaseDriver==='supabase'?50:300) * 1024 * 1024, files: 3, fields: 30 },
   fileFilter(_req, file, cb) {
     const extension = path.extname(file.originalname).toLowerCase();
     const allowed = file.fieldname === 'textFile' ? ['.txt', '.md', '.docx'] : ['image', 'thumbnail'].includes(file.fieldname) ? ['.png', '.jpg', '.jpeg', '.webp', '.gif'] : ['.mp4', '.webm', '.ogg', '.mp3', '.pdf', '.zip', '.txt', '.docx'];
@@ -122,6 +129,11 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+if(databaseDriver==='supabase')app.use('/uploads',async(req,_res,next)=>{
+  const file=path.resolve(UPLOAD_DIR,'.'+req.path);
+  if(file.startsWith(path.resolve(UPLOAD_DIR)+path.sep)&&!fs.existsSync(file))await store.restoreUploads();
+  next();
+});
 app.use('/uploads', express.static(UPLOAD_DIR, { dotfiles: 'deny', setHeaders(res, file) {
   if (/\.html?$/i.test(file)) res.setHeader('Content-Security-Policy', "sandbox allow-scripts allow-forms; frame-ancestors 'self'");
 } }));
@@ -153,7 +165,7 @@ function sign(user) {
 }
 
 function auth(required = true) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
     if (!token) {
       if (!required) return next();
@@ -161,7 +173,7 @@ function auth(required = true) {
     }
     try {
       const payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
-      const db = readDb();
+      const db = (await readDb());
       const user = db.users.find((item) => item._id === payload.sub);
       if (!user || user.isLocked || user.status === 'rejected' || (payload.version || 0) !== (user.tokenVersion || 0)) return res.status(401).json({ error: 'Unauthorized' });
       req.user = user;
@@ -184,8 +196,8 @@ function fileUrl(file) {
 registerClassrooms(app, { auth, admin, readDb, writeDb });
 registerDataTransfer(app, { auth, admin, readDb, writeDb, dataDir: DATA_DIR, uploadDir: UPLOAD_DIR });
 registerStorybookStudio(app, { auth, aiLimit, readDb, writeDb, uploadDir: UPLOAD_DIR });
-registerTeacherVideos(app, { auth, readDb, writeDb, uploadDir: UPLOAD_DIR });
-registerElearningStudio(app, { auth, aiLimit, readDb, writeDb, uploadDir: UPLOAD_DIR });
+registerTeacherVideos(app, { auth, readDb, writeDb, uploadDir: UPLOAD_DIR, maxUploadMB:databaseDriver==='supabase'?50:300 });
+registerElearningStudio(app, { auth, aiLimit, readDb, writeDb, persistUploads, uploadDir: UPLOAD_DIR });
 registerTeacherAssessments(app, { auth, aiLimit, readDb, writeDb });
 
 function pickBody(req, fields) {
@@ -340,8 +352,8 @@ function createCrudRoutes({ pathName, collection, key, uploadFields = [], fields
   const singularKey = singularKeys[collection] || key.slice(0, -1);
   const reservedIds = reservedCrudIds[pathName] || new Set();
 
-  app.get(`/api/${pathName}`, auth(false), (req, res) => {
-    const db = readDb();
+  app.get(`/api/${pathName}`, auth(false), async (req, res) => {
+    const db = (await readDb());
     const items = db[collection].filter(item => req.user?.role === 'admin' || item.isActive !== false).map((item) => decorate(db, collection === 'quizzes' && req.user?.role !== 'admin' ? learnerQuiz(item) : item));
     const scopedItems = collection === 'categories' && req.query.for === 'quizzes'
       ? items.filter(category => db.quizzes.some(quiz => quiz.isActive !== false && (quiz.category?._id || quiz.category) === category._id))
@@ -349,13 +361,13 @@ function createCrudRoutes({ pathName, collection, key, uploadFields = [], fields
     res.json(listPayload(key, scopedItems, req));
   });
 
-  app.get(`/api/${pathName}/:id`, auth(false), (req, res, next) => {
+  app.get(`/api/${pathName}/:id`, auth(false), async (req, res, next) => {
     if (reservedIds.has(req.params.id)) return next();
-    const db = readDb();
+    const db = (await readDb());
     const item = findById(db[collection], req.params.id, res);
     if (!item) return;
     if (item.isActive === false && req.user?.role !== 'admin') return res.status(404).json({ error: 'Not found' });
-    if (['storybooks', 'videos', 'elearnings'].includes(collection)) { item.viewCount = Number(item.viewCount || 0) + 1; writeDb(db); }
+    if (['storybooks', 'videos', 'elearnings'].includes(collection)) { item.viewCount = Number(item.viewCount || 0) + 1; (await writeDb(db)); }
     const previous = collection === 'quizzes' && req.user ? db.quizResults.find(r => r.user === req.user._id && (r.quiz?._id || r.quiz) === item._id) : null;
     if (collection === 'quizzes') {
       const blocked = previousQuiz(db, item, req.user);
@@ -365,8 +377,8 @@ function createCrudRoutes({ pathName, collection, key, uploadFields = [], fields
   });
 
   app.post(`/api/${pathName}`, auth(), admin, middleware, async (req, res) => {
-    validateContent(collection, req);
-    const db = readDb();
+    (await validateContent(collection, req));
+    const db = (await readDb());
     const files = req.files || {};
     const item = {
       _id: id(),
@@ -388,13 +400,13 @@ function createCrudRoutes({ pathName, collection, key, uploadFields = [], fields
     if (collection === 'elearnings' && files.file?.[0]) item.storyPath = extractCourse(files.file[0], UPLOAD_DIR);
     applyContentDefaults(collection, item);
     db[collection].push(item);
-    writeDb(db);
+    (await writeDb(db));
     res.status(201).json({ success: true, [singularKey]: decorate(db, item) });
   });
 
   app.patch(`/api/${pathName}/:id`, auth(), admin, middleware, async (req, res) => {
-    validateContent(collection, req, true);
-    const db = readDb();
+    (await validateContent(collection, req, true));
+    const db = (await readDb());
     const item = findById(db[collection], req.params.id, res);
     if (!item) return;
     const files = req.files || {};
@@ -414,45 +426,45 @@ function createCrudRoutes({ pathName, collection, key, uploadFields = [], fields
     if (['storybooks', 'videos'].includes(collection) && files.file?.[0]) item.url = item.fileUrl;
     if (collection === 'banners' && files.image?.[0]) item.imageUrl = item.image;
     applyContentDefaults(collection, item);
-    writeDb(db);
+    (await writeDb(db));
     res.json({ success: true, [singularKey]: decorate(db, item) });
   });
 
-  app.delete(`/api/${pathName}/:id`, auth(), admin, (req, res) => {
-    const db = readDb();
+  app.delete(`/api/${pathName}/:id`, auth(), admin, async (req, res) => {
+    const db = (await readDb());
     const before = db[collection].length;
     db[collection] = db[collection].filter((item) => item._id !== req.params.id);
     if (db[collection].length === before) return res.status(404).json({ error: 'Not found' });
-    writeDb(db);
+    (await writeDb(db));
     res.json({ success: true });
   });
 }
 
-function validateContent(collection, req, partial = false) {
+async function validateContent(collection, req, partial = false) {
   const field = collection === 'categories' ? 'name' : 'title';
   if ((!partial || req.body[field] !== undefined) && (typeof req.body[field] !== 'string' || !req.body[field].trim() || req.body[field].length > 300)) throw badRequest('Vui lòng nhập tên nội dung (tối đa 300 ký tự).');
   for (const key of ['url', 'link', 'linkUrl']) if (req.body[key] && !/^(https?:\/\/|\/(?!\/))/i.test(req.body[key])) throw badRequest('Đường dẫn cần bắt đầu bằng https:// hoặc /.');
-  if (req.body.category && !readDb().categories.some(c => c._id === req.body.category)) throw badRequest('Danh mục không tồn tại.');
+  if (req.body.category && !(await readDb()).categories.some(c => c._id === req.body.category)) throw badRequest('Danh mục không tồn tại.');
   if (req.body.duration && collection === 'quizzes' && (!(Number(req.body.duration) > 0) || Number(req.body.duration) > 240)) throw badRequest('Thời gian làm bài cần từ 1 đến 240 phút.');
 }
 function previousQuiz(db, quiz, user) {
   if (!user || user.role === 'admin' || quiz.independent === true) return null;
   return db.quizzes.filter(q => q.isActive !== false && q.category === quiz.category && Number(q.order || 0) < Number(quiz.order || 0)).sort((a, b) => a.order - b.order).find(q => !db.quizResults.some(r => r.user === user._id && (r.quiz?._id || r.quiz) === q._id));
 }
-app.get('/api/health', (_req, res) => res.json({ status: 'ok', time: now() }));
-app.get('/api/stats', (_req, res) => {
-  const db = readDb();
+app.get('/api/health', async (_req, res) => {if(databaseDriver==='supabase')await store.pool.query('SELECT 1');res.json({ status: 'ok', storage:databaseDriver, time: now() });});
+app.get('/api/stats', async (_req, res) => {
+  const db = (await readDb());
   const count = key => db[key].filter(item => item.isActive !== false).length;
   res.json({ storybooks: count('storybooks'), students: db.users.filter(u => u.role !== 'admin' && !u.isLocked).length, videos: count('videos'), quizzes: count('quizzes') });
 });
-app.get('/api/quizzes/my-status', auth(), (req, res) => {
-  const db = readDb();
+app.get('/api/quizzes/my-status', auth(), async (req, res) => {
+  const db = (await readDb());
   const quizzes = db.quizzes.filter(q => q.isActive !== false).map(q => ({ ...learnerQuiz(q), isCompleted: db.quizResults.some(r => r.user === req.user._id && (r.quiz?._id || r.quiz) === q._id), lockedBy: previousQuiz(db, q, req.user)?.title || null }));
   res.json(listPayload('quizzes', quizzes, req));
 });
 
 app.post('/api/auth/register', async (req, res) => {
-  const db = readDb();
+  const db = (await readDb());
   const username = String(req.body.username || '').trim();
   if (!/^[a-zA-Z0-9_.-]{3,40}$/.test(username)) throw badRequest('Tên đăng nhập cần 3–40 ký tự: chữ, số, dấu chấm, gạch dưới hoặc gạch ngang.');
   validatePassword(req.body.password);
@@ -481,12 +493,12 @@ app.post('/api/auth/register', async (req, res) => {
     updatedAt: now()
   };
   db.users.push(user);
-  writeDb(db);
+  (await writeDb(db));
   res.status(201).json({ success: true, user: publicUser(user) });
 });
 
 app.post('/api/auth/login', async (req, res) => {
-  const db = readDb();
+  const db = (await readDb());
   const loginName = String(req.body.username || '').toLowerCase();
   const user = db.users.find((item) =>
     item.username?.toLowerCase() === loginName || item.email?.toLowerCase() === loginName
@@ -500,18 +512,18 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/me', auth(), (req, res) => res.json({ user: publicUser(req.user) }));
 
-app.patch('/api/auth/profile', auth(), (req, res) => {
-  const db = readDb();
+app.patch('/api/auth/profile', auth(), async (req, res) => {
+  const db = (await readDb());
   const user = db.users.find((item) => item._id === req.user._id);
   if (req.body.email !== undefined) { req.body.email = normalizeEmail(req.body.email); if (req.body.email && db.users.some(u => u._id !== user._id && u.email?.toLowerCase() === req.body.email)) throw Object.assign(new Error('Email đã được sử dụng.'), { status: 409 }); }
   Object.assign(user, pickBody(req, ['fullName', 'email', 'dateOfBirth', 'className', 'school']), { updatedAt: now() });
   if (req.body.email && req.body.email !== req.user.email) user.isEmailVerified = false;
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true, user: publicUser(user) });
 });
 
 app.patch('/api/auth/change-password', auth(), async (req, res) => {
-  const db = readDb();
+  const db = (await readDb());
   const user = db.users.find((item) => item._id === req.user._id);
   const ok = await bcrypt.compare(String(req.body.currentPassword || ''), user.passwordHash);
   if (!ok) return res.status(400).json({ error: 'Mật khẩu hiện tại không đúng' });
@@ -519,27 +531,27 @@ app.patch('/api/auth/change-password', auth(), async (req, res) => {
   user.passwordHash = await bcrypt.hash(req.body.newPassword, 12);
   user.tokenVersion = (user.tokenVersion || 0) + 1;
   user.updatedAt = now();
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true, message: 'Đã đổi mật khẩu' });
 });
 
 accountRoutes(app, { readDb, writeDb, auth, dataDir: DATA_DIR });
 registerAiSettings(app, { auth, admin, directory: DATA_DIR });
 
-app.get('/api/admin/users', auth(), admin, (req, res) => {
-  const db = readDb();
+app.get('/api/admin/users', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   let users = db.users.map(publicUser);
   if (req.query.status === 'pending') users = users.filter((user) => !user.isApproved && user.role !== 'admin');
   res.json(listPayload('users', users, req));
 });
 
-app.get('/api/admin/users/pending', auth(), admin, (_req, res) => {
-  const db = readDb();
+app.get('/api/admin/users/pending', auth(), admin, async (_req, res) => {
+  const db = (await readDb());
   res.json({ users: db.users.filter((user) => !user.isApproved && user.role !== 'admin').map(publicUser) });
 });
 
-app.patch('/api/admin/users/:id', auth(), admin, (req, res) => {
-  const db = readDb();
+app.patch('/api/admin/users/:id', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   const user = findById(db.users, req.params.id, res);
   if (!user) return;
   if (req.body.role && !['student', 'member', 'admin', 'teacher'].includes(req.body.role)) throw badRequest('Vai trò không hợp lệ.');
@@ -549,45 +561,45 @@ app.patch('/api/admin/users/:id', auth(), admin, (req, res) => {
   Object.assign(user, pickBody(req, ['fullName', 'email', 'role', 'dateOfBirth', 'className', 'school', 'status']), { updatedAt: now() });
   if (req.body.isApproved !== undefined) user.isApproved = parseBool(req.body.isApproved, user.isApproved);
   if (req.body.isLocked !== undefined) user.isLocked = parseBool(req.body.isLocked, user.isLocked);
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true, user: publicUser(user) });
 });
 
-app.patch('/api/admin/users/:id/approve', auth(), admin, (req, res) => {
-  const db = readDb();
+app.patch('/api/admin/users/:id/approve', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   const user = findById(db.users, req.params.id, res);
   if (!user) return;
   user.status = 'approved';
   user.isApproved = true;
   user.updatedAt = now();
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true, user: publicUser(user) });
 });
 
-app.patch('/api/admin/users/:id/reject', auth(), admin, (req, res) => {
-  const db = readDb();
+app.patch('/api/admin/users/:id/reject', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   const user = findById(db.users, req.params.id, res);
   if (!user) return;
   user.status = 'rejected';
   user.isApproved = false;
   user.updatedAt = now();
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true, user: publicUser(user) });
 });
 
-app.patch('/api/admin/users/:id/toggle-lock', auth(), admin, (req, res) => {
-  const db = readDb();
+app.patch('/api/admin/users/:id/toggle-lock', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   const user = findById(db.users, req.params.id, res);
   if (!user) return;
   user.isLocked = !user.isLocked;
   user.tokenVersion = (user.tokenVersion || 0) + 1;
   user.updatedAt = now();
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true, user: publicUser(user) });
 });
 
 app.patch('/api/admin/users/:id/change-password', auth(), admin, async (req, res) => {
-  const db = readDb();
+  const db = (await readDb());
   const user = findById(db.users, req.params.id, res);
   if (!user) return;
   const password = req.body.password || req.body.newPassword;
@@ -595,20 +607,20 @@ app.patch('/api/admin/users/:id/change-password', auth(), admin, async (req, res
   user.passwordHash = await bcrypt.hash(password, 12);
   user.tokenVersion = (user.tokenVersion || 0) + 1;
   user.updatedAt = now();
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true });
 });
 
-app.delete('/api/admin/users/:id', auth(), admin, (req, res) => {
-  const db = readDb();
+app.delete('/api/admin/users/:id', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   if (db.classes.some(c=>c.teacherId===req.params.id)||db.memberships.some(m=>m.studentId===req.params.id)) throw badRequest('Tài khoản đã liên kết lớp học. Hãy khóa tài khoản để giữ lịch sử.');
   db.users = db.users.filter((user) => user._id !== req.params.id || user.role === 'admin');
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true });
 });
 
-app.get('/api/admin/dashboard', auth(), admin, (_req, res) => {
-  const db = readDb();
+app.get('/api/admin/dashboard', auth(), admin, async (_req, res) => {
+  const db = (await readDb());
   res.json({
     stats: {
       users: db.users.length,
@@ -637,8 +649,8 @@ createCrudRoutes({
   uploadFields: ['image'],
   fields: ['title', 'subtitle', 'description', 'link', 'linkUrl', 'buttonText', 'position']
 });
-app.get('/api/banners/admin/all', auth(), admin, (req, res) => {
-  const db = readDb();
+app.get('/api/banners/admin/all', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   res.json(listPayload('banners', db.banners, req));
 });
 
@@ -670,8 +682,8 @@ createCrudRoutes({
 });
 
 app.post('/api/storybooks/heyzine', auth(), admin, upload.fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'textFile', maxCount: 1 }]), async (req, res) => {
-  validateContent('storybooks', req);
-  const db = readDb();
+  (await validateContent('storybooks', req));
+  const db = (await readDb());
   const aiText = await documentText(req.files?.textFile?.[0]);
   const item = {
     _id: id(),
@@ -688,13 +700,13 @@ app.post('/api/storybooks/heyzine', auth(), admin, upload.fields([{ name: 'thumb
     updatedAt: now()
   };
   db.storybooks.push(item);
-  writeDb(db);
+  (await writeDb(db));
   res.status(201).json({ success: true, storybook: attachCategory(db, item) });
 });
 
 app.post('/api/storybooks/video', auth(), admin, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'thumbnail', maxCount: 1 }, { name: 'textFile', maxCount: 1 }]), async (req, res) => {
-  validateContent('storybooks', req);
-  const db = readDb();
+  (await validateContent('storybooks', req));
+  const db = (await readDb());
   const aiText = await documentText(req.files?.textFile?.[0]);
   const item = {
     _id: id(),
@@ -713,7 +725,7 @@ app.post('/api/storybooks/video', auth(), admin, upload.fields([{ name: 'file', 
   };
   applyContentDefaults('storybooks', item);
   db.storybooks.push(item);
-  writeDb(db);
+  (await writeDb(db));
   res.status(201).json({ success: true, storybook: attachCategory(db, item) });
 });
 
@@ -725,8 +737,8 @@ createCrudRoutes({
   decorate: attachCategory
 });
 
-app.get('/api/quizzes/:id/full', auth(), admin, (req, res) => {
-  const db = readDb();
+app.get('/api/quizzes/:id/full', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   const quiz = findById(db.quizzes, req.params.id, res);
   if (!quiz) return;
   res.json({ quiz: attachCategory(db, quiz) });
@@ -734,22 +746,22 @@ app.get('/api/quizzes/:id/full', auth(), admin, (req, res) => {
 
 registerQuizRoutes(app, { auth, admin, upload, readDb, writeDb, previousQuiz });
 
-app.get('/api/quizzes/my-results', auth(), (req, res) => {
-  const db = readDb();
+app.get('/api/quizzes/my-results', auth(), async (req, res) => {
+  const db = (await readDb());
   const results = [...db.quizResults, ...db.classResults.map(studentResult)].filter((result) => result.user === req.user._id);
   res.json(listPayload('results', results, req));
 });
 
-app.get('/api/quizzes/my-results/:id', auth(), (req, res) => {
-  const db = readDb();
+app.get('/api/quizzes/my-results/:id', auth(), async (req, res) => {
+  const db = (await readDb());
   const result = findById([...db.quizResults, ...db.classResults.map(studentResult)], req.params.id, res);
   if (!result) return;
   if (result.user !== req.user._id) return res.status(404).json({ error: 'Not found' });
   res.json({ result });
 });
 
-app.get('/api/quizzes/results/all', auth(), admin, (req, res) => {
-  const db = readDb();
+app.get('/api/quizzes/results/all', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   let results = db.quizResults.map((result) => ({
     ...result,
     user: publicUser(db.users.find((user) => user._id === result.user)) || result.user,
@@ -760,8 +772,8 @@ app.get('/api/quizzes/results/all', auth(), admin, (req, res) => {
   res.json(listPayload('results', results, req));
 });
 
-app.get('/api/quizzes/results/:id', auth(), admin, (req, res) => {
-  const db = readDb();
+app.get('/api/quizzes/results/:id', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   const result = findById(db.quizResults, req.params.id, res);
   if (!result) return;
   res.json({
@@ -773,13 +785,13 @@ app.get('/api/quizzes/results/:id', auth(), admin, (req, res) => {
   });
 });
 
-app.get('/api/quizzes/results', auth(), admin, (req, res) => {
-  const db = readDb();
+app.get('/api/quizzes/results', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   res.json(listPayload('results', db.quizResults, req));
 });
 
-app.patch('/api/quizzes/results/:id/grade', auth(), admin, (req, res) => {
-  const db = readDb();
+app.patch('/api/quizzes/results/:id/grade', auth(), admin, async (req, res) => {
+  const db = (await readDb());
   const result = findById(db.quizResults, req.params.id, res);
   if (!result) return;
   if (Array.isArray(req.body.essayGrades)) {
@@ -802,12 +814,12 @@ app.patch('/api/quizzes/results/:id/grade', auth(), admin, (req, res) => {
   result.percentage = result.maxScore ? Math.round((result.totalScore / result.maxScore) * 100) : 0;
   result.isGraded = result.answers.filter(answer => answer.questionType === 'essay').every(answer => Number.isFinite(answer.essayGrade));
   result.gradedAt = now();
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true, result });
 });
 
-app.get('/api/storybooks/:id/chat-status', (req, res) => {
-  const db = readDb();
+app.get('/api/storybooks/:id/chat-status', async (req, res) => {
+  const db = (await readDb());
   const { storybook } = storybookAiContext(db, req.params.id);
   res.json({
     status: aiReady() ? 'ready' : 'unavailable',
@@ -818,7 +830,7 @@ app.get('/api/storybooks/:id/chat-status', (req, res) => {
 
 app.post('/api/storybooks/:id/chat', auth(), aiLimit, async (req, res, next) => {
   try {
-    const db = readDb();
+    const db = (await readDb());
     const { storybook, context } = storybookAiContext(db, req.params.id);
     if (!storybook) return res.status(404).json({ error: 'Not found' });
     if (!storybook.aiText) throw badRequest('Tài liệu chưa có văn bản để hỏi đáp.');
@@ -845,7 +857,7 @@ app.post('/api/storybooks/:id/chat', auth(), aiLimit, async (req, res, next) => 
 app.post('/api/storybooks/:id/generate-quiz', auth(), aiLimit, async (req, res, next) => {
   try {
     const count = boundedCount(req.body.numberOfQuestions, 5);
-    const db = readDb();
+    const db = (await readDb());
     const { storybook, context } = storybookAiContext(db, req.params.id);
     if (!storybook) return res.status(404).json({ error: 'Not found' });
     const prompt = [
@@ -858,10 +870,10 @@ app.post('/api/storybooks/:id/generate-quiz', auth(), aiLimit, async (req, res, 
     const text = await geminiText(prompt);
     const parsed = parseJsonLoose(text);
     const questions = normalizeGeneratedQuestions(parsed?.questions, count);
-    const current = readDb();
+    const current = (await readDb());
     current.storyQuizSessions = current.storyQuizSessions.filter(s => s.expiresAt > Date.now());
     const session = { _id: id(), user: req.user._id, storybook: storybook._id, questions, expiresAt: Date.now() + 60 * 60 * 1000 };
-    current.storyQuizSessions.push(session); writeDb(current);
+    current.storyQuizSessions.push(session); (await writeDb(current));
     const publicQuestions = questions.map(({ correctAnswer, explanation, ...q }) => q);
     res.json({
       success: true,
@@ -876,8 +888,8 @@ app.post('/api/storybooks/:id/generate-quiz', auth(), aiLimit, async (req, res, 
   }
 });
 
-app.post('/api/storybooks/:id/submit-quiz', auth(), (req, res) => {
-  const db = readDb();
+app.post('/api/storybooks/:id/submit-quiz', auth(), async (req, res) => {
+  const db = (await readDb());
   const session = db.storyQuizSessions.find(s => s._id === (req.body.quizId || req.body.questions) && s.user === req.user._id && s.storybook === req.params.id && s.expiresAt > Date.now());
   if (!session) throw badRequest('Phiên làm bài không hợp lệ hoặc đã hết hạn.');
   const questions = session.questions;
@@ -903,20 +915,20 @@ app.post('/api/storybooks/:id/submit-quiz', auth(), (req, res) => {
   };
   db.storyQuizSessions = db.storyQuizSessions.filter(s => s._id !== session._id);
   db.storybookQuizResults.push(result);
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true, ...result, result });
 });
 
-app.get('/api/storybooks/my-quiz-results', auth(), (req, res) => {
-  const db = readDb();
+app.get('/api/storybooks/my-quiz-results', auth(), async (req, res) => {
+  const db = (await readDb());
   const results = db.storybookQuizResults
     .filter((result) => result.user === req.user._id)
     .map((result) => ({ ...result, storybook: db.storybooks.find((item) => item._id === result.storybook) || result.storybook }));
   res.json(listPayload('results', results, req));
 });
 
-app.get('/api/flashcards/storybook/:id', auth(), (req, res) => {
-  const db = readDb();
+app.get('/api/flashcards/storybook/:id', auth(), async (req, res) => {
+  const db = (await readDb());
   const flashcard = db.flashcards.find((item) => item.user === req.user._id && item.storybook === req.params.id);
   res.json({ flashcard: flashcard || null });
 });
@@ -924,7 +936,7 @@ app.get('/api/flashcards/storybook/:id', auth(), (req, res) => {
 app.post('/api/flashcards/generate', auth(), aiLimit, async (req, res, next) => {
   try {
     const count = boundedCount(req.body.numberOfCards, 10);
-    const db = readDb();
+    const db = (await readDb());
     const { storybook, context } = storybookAiContext(db, req.body.storybookId);
     if (!storybook) return res.status(404).json({ error: 'Not found' });
     if (!storybook.aiText) throw badRequest('Tài liệu chưa có văn bản để tạo flashcard.');
@@ -946,8 +958,8 @@ app.post('/api/flashcards/generate', auth(), aiLimit, async (req, res, next) => 
   }
 });
 
-app.post('/api/flashcards/save', auth(), (req, res) => {
-  const db = readDb();
+app.post('/api/flashcards/save', auth(), async (req, res) => {
+  const db = (await readDb());
   if (!db.storybooks.some(s => s._id === req.body.storybookId && s.isActive !== false)) return res.status(404).json({ error: 'Not found' });
   if (!Array.isArray(req.body.cards) || req.body.cards.length < 1 || req.body.cards.length > 50 || req.body.cards.some(c => typeof c.front !== 'string' || typeof c.back !== 'string' || !c.front.trim() || !c.back.trim() || c.front.length > 4000 || c.back.length > 8000)) throw badRequest('Danh sách flashcard không hợp lệ.');
   const existing = db.flashcards.find((item) => item.user === req.user._id && item.storybook === req.body.storybookId);
@@ -959,22 +971,22 @@ app.post('/api/flashcards/save', auth(), (req, res) => {
     updatedAt: now()
   });
   if (!existing) db.flashcards.push(flashcard);
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true, flashcard });
 });
 
-app.get('/api/flashcards/my-cards', auth(), (req, res) => {
-  const db = readDb();
+app.get('/api/flashcards/my-cards', auth(), async (req, res) => {
+  const db = (await readDb());
   const flashcards = db.flashcards
     .filter((item) => item.user === req.user._id)
     .map((item) => ({ ...item, storybook: db.storybooks.find((story) => story._id === item.storybook) || null }));
   res.json({ flashcards });
 });
 
-app.delete('/api/flashcards/:id', auth(), (req, res) => {
-  const db = readDb();
+app.delete('/api/flashcards/:id', auth(), async (req, res) => {
+  const db = (await readDb());
   db.flashcards = db.flashcards.filter((item) => item._id !== req.params.id || item.user !== req.user._id);
-  writeDb(db);
+  (await writeDb(db));
   res.json({ success: true });
 });
 

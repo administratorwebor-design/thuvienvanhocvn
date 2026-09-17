@@ -4,20 +4,20 @@ import {randomUUID} from 'node:crypto';
 import multer from 'multer';
 import {videoLink} from '../shared/video-links.js';
 const fail=(status,message)=>{throw Object.assign(new Error(message),{status});};
-export function registerTeacherVideos(app,{auth,readDb,writeDb,uploadDir}) {
+export function registerTeacherVideos(app,{auth,readDb,writeDb,uploadDir,maxUploadMB=300}) {
   const base='/api/classes/:classId/teacher-videos';
-  const check=req=>{
-    const db=readDb(),c=db.classes.find(c=>c._id===req.params.classId);
+  const check=async req=>{
+    const db=(await readDb()),c=db.classes.find(c=>c._id===req.params.classId);
     if(!c)fail(404,'Không tìm thấy lớp.');
     if(req.user.role!=='admin'&&!(req.user.role==='teacher'&&c.teacherId===req.user._id))fail(403,'Chỉ giáo viên phụ trách lớp được quản lý video.');
     return {db,c};
   };
-  const access=(req,res,next)=>{check(req);next();};
-  const upload=multer({storage:multer.diskStorage({destination:uploadDir,filename:(_req,file,cb)=>cb(null,`teacher-video-${randomUUID()}${path.extname(file.originalname).toLowerCase()}`)}),limits:{fileSize:300*1024*1024,files:1,fields:6,fieldSize:20000},fileFilter:(_req,file,cb)=>{const ok=['.mp4','.webm'].includes(path.extname(file.originalname).toLowerCase());cb(ok?null:Object.assign(Error('Chỉ nhận video MP4 hoặc WebM.'),{status:400}),ok);}}).single('file');
-  app.get(base,auth(),access,(req,res)=>res.json({videos:readDb().videos.filter(v=>v.classId===req.params.classId&&v.isActive!==false)}));
-  app.post(base,auth(),access,(req,res,next)=>upload(req,res,error=>error?res.status(400).json({error:error.code==='LIMIT_FILE_SIZE'?'Video vượt quá 300 MB. Hãy dùng link Drive hoặc YouTube.':error.message}):next()),(req,res)=>{
+  const access=async (req,res,next)=>{(await check(req));next();};
+  const upload=multer({storage:multer.diskStorage({destination:uploadDir,filename:(_req,file,cb)=>cb(null,`teacher-video-${randomUUID()}${path.extname(file.originalname).toLowerCase()}`)}),limits:{fileSize:maxUploadMB*1024*1024,files:1,fields:6,fieldSize:20000},fileFilter:(_req,file,cb)=>{const ok=['.mp4','.webm'].includes(path.extname(file.originalname).toLowerCase());cb(ok?null:Object.assign(Error('Chỉ nhận video MP4 hoặc WebM.'),{status:400}),ok);}}).single('file');
+  app.get(base,auth(),access,async (req,res)=>res.json({videos:(await readDb()).videos.filter(v=>v.classId===req.params.classId&&v.isActive!==false)}));
+  app.post(base,auth(),access,(req,res,next)=>upload(req,res,error=>error?res.status(400).json({error:error.code==='LIMIT_FILE_SIZE'?`Video vượt quá ${maxUploadMB} MB. Hãy dùng link Drive hoặc YouTube.`:error.message}):next()),async (req,res)=>{
     try {
-      const {db,c}=check(req),{title,description='',source}=req.body;
+      const {db,c}=(await check(req)),{title,description='',source}=req.body;
       if(typeof title!=='string'||!title.trim()||title.length>200)fail(400,'Nhập tiêu đề video, tối đa 200 ký tự.');
       if(typeof description!=='string'||description.length>10000)fail(400,'Mô tả tối đa 10.000 ký tự.');
       let media;
@@ -37,7 +37,7 @@ export function registerTeacherVideos(app,{auth,readDb,writeDb,uploadDir}) {
       db.videos.push(video);
       let assignment;
       if(assign){assignment={_id:randomUUID(),classId:c._id,kind:'videos',resourceId:video._id,title:video.title,instructions:video.description,dueAt:null,maxAttempts:1,isActive:true,createdBy:req.user._id,createdAt:date};db.assignments.push(assignment);}
-      writeDb(db);res.status(201).json({video,assignment});
+      (await writeDb(db));res.status(201).json({video,assignment});
     }catch(error){if(req.file?.path)fs.rmSync(req.file.path,{force:true});throw error;}
   });
 }

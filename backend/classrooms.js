@@ -148,8 +148,8 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
     if (type === "complete") event.selfCompletedAt = stamp();
     return event;
   }
-  app.get("/api/classroom-status", auth(), (req, res) => {
-    const db = readDb();
+  app.get("/api/classroom-status", auth(), async (req, res) => {
+    const db = (await readDb());
     res.json({
       enabled: classroomsEnabled(),
       classes: enrolledClasses(db, req.user).map((c) => ({
@@ -158,9 +158,9 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       })),
     });
   });
-  app.get("/api/teachers", auth(), admin, (req, res) => {
+  app.get("/api/teachers", auth(), admin, async (req, res) => {
     res.json({
-      teachers: readDb()
+      teachers: (await readDb())
         .users.filter((u) => u.role === "teacher")
         .map(pickUser),
     });
@@ -176,7 +176,7 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       fail(400, "Nhập họ tên và tên đăng nhập hợp lệ (3–40 ký tự).");
     validatePassword(req.body.password);
     const passwordHash = await bcrypt.hash(req.body.password, 12);
-    const db = readDb();
+    const db = (await readDb());
     if (
       db.users.some((u) => u.username.toLowerCase() === username.toLowerCase())
     )
@@ -195,7 +195,7 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       updatedAt: stamp(),
     };
     db.users.push(teacher);
-    writeDb(db);
+    (await writeDb(db));
     res.status(201).json({ teacher: pickUser(teacher) });
   });
   app.patch("/api/teachers/:id", auth(), admin, async (req, res) => {
@@ -204,7 +204,7 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       validatePassword(req.body.password);
       hash = await bcrypt.hash(req.body.password, 12);
     }
-    const db = readDb(),
+    const db = (await readDb()),
       t = db.users.find((u) => u._id === req.params.id && u.role === "teacher");
     if (!t) fail(404, "Không tìm thấy giáo viên.");
     if (req.body.isLocked !== undefined) {
@@ -218,11 +218,11 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       t.tokenVersion = (t.tokenVersion || 0) + 1;
     }
     t.updatedAt = stamp();
-    writeDb(db);
+    (await writeDb(db));
     res.json({ teacher: pickUser(t) });
   });
-  app.get("/api/classes", auth(), (req, res) => {
-    const db = readDb();
+  app.get("/api/classes", auth(), async (req, res) => {
+    const db = (await readDb());
     const list = db.classes.filter(
       (c) =>
         req.user.role === "admin" ||
@@ -241,8 +241,8 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       })),
     });
   });
-  app.post("/api/classes", auth(), staff, (req, res) => {
-    const db = readDb(),
+  app.post("/api/classes", auth(), staff, async (req, res) => {
+    const db = (await readDb()),
       teacherId =
         req.user.role === "teacher" ? req.user._id : req.body.teacherId;
     if (
@@ -268,11 +268,11 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       createdAt: stamp(),
     };
     db.classes.push(c);
-    writeDb(db);
+    (await writeDb(db));
     res.status(201).json({ classroom: describeClass(db, c) });
   });
-  app.patch("/api/classes/:id", auth(), staff, (req, res) => {
-    const db = readDb(),
+  app.patch("/api/classes/:id", auth(), staff, async (req, res) => {
+    const db = (await readDb()),
       c = classroom(db, req.params.id, req.user, true);
     if (req.body.teacherId !== undefined) {
       if (req.user.role !== "admin") fail(403, "Chỉ admin được bàn giao lớp.");
@@ -296,12 +296,12 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       c.name = String(req.body.name).trim();
     }
     c.updatedAt = stamp();
-    writeDb(db);
+    (await writeDb(db));
     res.json({ classroom: describeClass(db, c) });
   });
-  app.post("/api/classes/join", auth(), (req, res) => {
+  app.post("/api/classes/join", auth(), async (req, res) => {
     if (!isStudent(req.user)) fail(403, "Chỉ học sinh tham gia lớp bằng mã.");
-    const db = readDb(),
+    const db = (await readDb()),
       code = String(req.body.code || "")
         .trim()
         .toUpperCase(),
@@ -318,15 +318,15 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
     }
     m.status = "pending";
     m.requestedAt = stamp();
-    writeDb(db);
+    (await writeDb(db));
     res.status(201).json({ membership: m });
   });
   app.patch(
     "/api/classes/:id/members/:studentId",
     auth(),
     staff,
-    (req, res) => {
-      const db = readDb();
+    async (req, res) => {
+      const db = (await readDb());
       classroom(db, req.params.id, req.user, true);
       const m = db.memberships.find(
         (m) =>
@@ -337,12 +337,12 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
         fail(400, "Trạng thái không hợp lệ.");
       m.status = req.body.status;
       m.updatedAt = stamp();
-      writeDb(db);
+      (await writeDb(db));
       res.json({ membership: m });
     },
   );
-  app.get("/api/classes/:id", auth(), (req, res) => {
-    const db = readDb(),
+  app.get("/api/classes/:id", auth(), async (req, res) => {
+    const db = (await readDb()),
       c = classroom(db, req.params.id, req.user),
       manage = ["teacher", "admin"].includes(req.user.role);
     const assignments = db.assignments.filter(
@@ -376,8 +376,8 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       ),
     });
   });
-  app.get("/api/class-library", auth(), staff, (req, res) => {
-    const db = readDb();
+  app.get("/api/class-library", auth(), staff, async (req, res) => {
+    const db = (await readDb());
     res.json(
       Object.fromEntries(
         ["storybooks", "videos", "elearnings", "quizzes"].map((kind) => [
@@ -389,8 +389,8 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       ),
     );
   });
-  app.post("/api/classes/:id/assignments", auth(), staff, (req, res) => {
-    const db = readDb(),
+  app.post("/api/classes/:id/assignments", auth(), staff, async (req, res) => {
+    const db = (await readDb()),
       c = classroom(db, req.params.id, req.user, true);
     if (!activeClass(db, c)) fail(409, "Lớp đang tạm ngừng.");
     const { kind, resourceId } = req.body;
@@ -432,21 +432,21 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
           resource.questions.reduce((s, q) => s + q.points, 0),
       });
     db.assignments.push(a);
-    writeDb(db);
+    (await writeDb(db));
     res.status(201).json({ assignment: { ...a, questions: undefined } });
   });
-  app.patch("/api/assignments/:id", auth(), staff, (req, res) => {
-    const db = readDb(),
+  app.patch("/api/assignments/:id", auth(), staff, async (req, res) => {
+    const db = (await readDb()),
       { a } = assignment(db, req.params.id, req.user);
     classroom(db, a.classId, req.user, true);
     if (typeof req.body.isActive !== "boolean")
       fail(400, "Thiếu trạng thái bài giao.");
     a.isActive = req.body.isActive;
-    writeDb(db);
+    (await writeDb(db));
     res.json({ success: true });
   });
-  app.get("/api/assignments/:id", auth(), (req, res) => {
-    const db = readDb(),
+  app.get("/api/assignments/:id", auth(), async (req, res) => {
+    const db = (await readDb()),
       { a, c } = assignment(db, req.params.id, req.user);
     const resource = db[a.kind].find(
       (r) => r._id === a.resourceId && r.isActive !== false,
@@ -475,8 +475,8 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
         .map((r) => (manage ? r : studentResult(r))),
     });
   });
-  app.post("/api/assignments/:id/activity", auth(), (req, res) => {
-    const db = readDb(),
+  app.post("/api/assignments/:id/activity", auth(), async (req, res) => {
+    const db = (await readDb()),
       { a } = assignment(db, req.params.id, req.user);
     if (!isStudent(req.user)) fail(403, "Chỉ ghi tiến độ học sinh.");
     if (
@@ -504,11 +504,11 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
         total: Math.round(req.body.total),
         unit: req.body.unit,
       });
-    writeDb(db);
+    (await writeDb(db));
     res.json({ activity: event });
   });
-  app.post("/api/assignments/:id/start", auth(), (req, res) => {
-    const db = readDb(),
+  app.post("/api/assignments/:id/start", auth(), async (req, res) => {
+    const db = (await readDb()),
       { a } = assignment(db, req.params.id, req.user);
     if (!isStudent(req.user) || a.kind !== "quizzes")
       fail(403, "Chỉ học sinh làm bài kiểm tra được giao.");
@@ -526,7 +526,7 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
     );
     if (attempt && Date.now() > attempt.deadline + 30000) {
       attempt.expired = true;
-      writeDb(db);
+      (await writeDb(db));
       fail(
         409,
         "Lượt làm đã hết giờ. Bấm bắt đầu để dùng lượt tiếp theo nếu còn.",
@@ -551,12 +551,12 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
         ),
       };
       db.classAttempts.push(attempt);
-      writeDb(db);
+      (await writeDb(db));
     }
     res.json({ attemptId: attempt._id, deadline: attempt.deadline });
   });
-  app.post("/api/assignments/:id/submit", auth(), (req, res) => {
-    const db = readDb(),
+  app.post("/api/assignments/:id/submit", auth(), async (req, res) => {
+    const db = (await readDb()),
       { a } = assignment(db, req.params.id, req.user);
     if (!isStudent(req.user) || a.kind !== "quizzes")
       fail(403, "Không được nộp bài này.");
@@ -587,11 +587,11 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
     attempt.submittedAt = r.submittedAt;
     db.classResults.push(r);
     log(db, a, req.user, "open");
-    writeDb(db);
+    (await writeDb(db));
     res.status(201).json({ result: studentResult(r) });
   });
-  app.patch("/api/class-results/:id/grade", auth(), staff, (req, res) => {
-    const db = readDb(),
+  app.patch("/api/class-results/:id/grade", auth(), staff, async (req, res) => {
+    const db = (await readDb()),
       r = db.classResults.find((r) => r._id === req.params.id);
     if (!r) fail(404, "Không tìm thấy bài làm.");
     classroom(db, r.classId, req.user, true);
@@ -628,11 +628,11 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
     r.gradedBy = req.user._id;
     r.gradedAt = stamp();
     r.results = r.answers;
-    writeDb(db);
+    (await writeDb(db));
     res.json({ result: r });
   });
-  app.get("/api/classes/:id/grades.csv", auth(), staff, (req, res) => {
-    const db = readDb(),
+  app.get("/api/classes/:id/grades.csv", auth(), staff, async (req, res) => {
+    const db = (await readDb()),
       c = classroom(db, req.params.id, req.user, true),
       cell = (v) =>
         '"' +
@@ -702,10 +702,10 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
       )
         storyId = req.body?.storybookId;
       if (storyId && req.method === "POST" && req.user) {
-        res.on("finish", () => {
+        res.on("finish", async () => {
           if (res.statusCode >= 400) return;
           try {
-            const db = readDb();
+            const db = (await readDb());
             const wanted = req.headers["x-class-assignment"];
             const a = db.assignments.find(
               (a) =>
@@ -718,7 +718,7 @@ export function registerClassrooms(app, { auth, admin, readDb, writeDb }) {
             if (a) {
               const e = log(db, a, req.user, "open");
               e.aiInteractions = (e.aiInteractions || 0) + 1;
-              writeDb(db);
+              (await writeDb(db));
             }
           } catch {
             /* A learning action should not fail because activity logging failed. */

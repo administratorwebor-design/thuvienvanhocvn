@@ -9,7 +9,7 @@ process.env.DATA_DIR ||= path.join(root,'backend/data');
 process.env.UPLOAD_DIR ||= path.join(root,'backend/uploads');
 if(!process.env.JWT_SECRET || process.env.JWT_SECRET.length<32)throw Error('Set JWT_SECRET to at least 32 characters.');
 const marker=path.join(process.env.DATA_DIR,'demo-bootstrap-v1.done');
-if(process.env.SEED_DEMO==='true'&&!fs.existsSync(marker)){
+if(process.env.DATABASE_DRIVER!=='supabase'&&process.env.SEED_DEMO==='true'&&!fs.existsSync(marker)){
   for(const args of [
     ['backend/server.js','--seed-only'],
     ['scripts/seed-deploy-library.mjs']

@@ -5,8 +5,9 @@ import http from 'node:http';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
+import {createPostgresStore} from '../backend/postgres-store.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
-export async function startTestServer({ ai = false, seed = true, classrooms = false, studio = false, lessonGeneration = false, assessmentResponse } = {}) {
+export async function startTestServer({ ai = false, seed = true, classrooms = false, studio = false, lessonGeneration = false, assessmentResponse, supabase = false } = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'literature-test-'));
   const probe = http.createServer(); probe.listen(0, '127.0.0.1'); await once(probe, 'listening');
   const port = probe.address().port; await new Promise(resolve => probe.close(resolve));
@@ -35,6 +36,12 @@ export async function startTestServer({ ai = false, seed = true, classrooms = fa
   fakeAi.listen(0, '127.0.0.1'); await once(fakeAi, 'listening');
   const env = { ...process.env, LOAD_ENV: 'false', NODE_ENV: 'test', PORT: String(port), DATA_DIR: path.join(directory, 'data'), UPLOAD_DIR: path.join(directory, 'uploads'), ADMIN_USERNAME: 'admin', ADMIN_PASSWORD: 'ReviewAdmin!2026', JWT_SECRET: 'isolated-test-secret-32-characters-long', GEMINI_API_KEY: ai ? 'test-only-key' : '', GEMINI_MODEL: 'test-model', GEMINI_FALLBACK_MODELS: '', AI_TEST_URL: `http://127.0.0.1:${fakeAi.address().port}`, PUBLIC_BASE_URL: '', MAIL_TRANSPORT: 'file', SMTP_HOST: '', APP_URL: `http://127.0.0.1:${port}` };
   env.CLASSROOMS_ENABLED = String(classrooms);
+  env.DATABASE_DRIVER = 'sqlite';
+  let cloud;
+  if(supabase){
+    env.DATABASE_DRIVER='supabase';env.REQUIRE_EXISTING_DATA='false';env.SUPABASE_SCHEMA=`test_api_${process.pid}_${port}`;
+    cloud=await createPostgresStore({env});
+  }
   const child = spawn(process.execPath, ['backend/server.js'], { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
   let logs = ''; child.stdout.on('data', b => { logs += b; }); child.stderr.on('data', b => { logs += b; });
   const base = `http://127.0.0.1:${port}`;
@@ -45,7 +52,7 @@ export async function startTestServer({ ai = false, seed = true, classrooms = fa
     try { if ((await fetch(`${base}/api/health`)).ok) { ready = true; break; } } catch {}
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  async function stop() { if (child.exitCode === null) { child.kill(); await once(child, 'exit'); } await new Promise(resolve => fakeAi.close(resolve)); }
+  async function stop() { if (child.exitCode === null) { child.kill(); await once(child, 'exit'); } await new Promise(resolve => fakeAi.close(resolve));if(cloud){await cloud.pool.query(`DROP SCHEMA "${env.SUPABASE_SCHEMA}" CASCADE`);await cloud.close();} }
   if (!ready) { await stop(); throw new Error(logs); }
   async function request(method, route, body, token) {
     const response = await fetch(`${base}/api${route}`, { method, headers: { ...(body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body) });

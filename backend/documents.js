@@ -30,6 +30,7 @@ export function extractCourse(file, uploadDir) {
   let zip;
   try { zip = new AdmZip(file.path); } catch { throw badRequest('Tệp ZIP bị hỏng hoặc không hợp lệ.'); }
   const entries = zip.getEntries();
+  if(process.env.DATABASE_DRIVER==='supabase'&&entries.some(e=>e.header.size>50*1024*1024))throw badRequest('Mỗi tệp trong bài giảng tối đa 50 MB. Video lớn hãy dùng YouTube hoặc Drive.');
   if (entries.length > 5000 || entries.reduce((n, e) => n + e.header.size, 0) > 500 * 1024 * 1024) throw badRequest('Gói bài giảng quá lớn sau giải nén.');
   const folder = `course-${crypto.randomUUID()}`;
   const root = path.resolve(uploadDir, folder);

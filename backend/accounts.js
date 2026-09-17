@@ -26,23 +26,23 @@ export function accountRoutes(app, { readDb, writeDb, auth, dataDir }) {
   }
   async function issue(collection, user, route, subject) {
     const token = randomBytes(32).toString('hex');
-    const db = readDb();
+    const db = (await readDb());
     db[collection] = db[collection].filter(t => t.user !== user._id && t.expiresAt > Date.now());
     const entry = { _id: hash(token), user: user._id, email: user.email, expiresAt: Date.now() + 30 * 60 * 1000 };
-    db[collection].push(entry); writeDb(db);
+    db[collection].push(entry); (await writeDb(db));
     try { await send(user.email, subject, `${publicOrigin}/${route}/${token}`); }
-    catch { const current = readDb(); current[collection] = current[collection].filter(t => t._id !== entry._id); writeDb(current); throw Object.assign(new Error('Không gửi được email. Vui lòng thử lại sau.'), { status: 503 }); }
+    catch { const current = (await readDb()); current[collection] = current[collection].filter(t => t._id !== entry._id); (await writeDb(current)); throw Object.assign(new Error('Không gửi được email. Vui lòng thử lại sau.'), { status: 503 }); }
   }
   app.post('/api/auth/forgot-password', async (req, res) => {
     requireMail();
     const email = normalizeEmail(req.body.email);
-    const user = readDb().users.find(u => u.email?.toLowerCase() === email && email);
+    const user = (await readDb()).users.find(u => u.email?.toLowerCase() === email && email);
     if (user) await issue('resetTokens', user, 'reset-password', 'Đặt lại mật khẩu Thư Viện Số Văn Học');
     res.json({ success: true, message: 'Nếu email đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi đến bạn.' });
   });
   app.post('/api/auth/reset-password', async (req, res) => {
     validatePassword(req.body.newPassword);
-    const db = readDb();
+    const db = (await readDb());
     const token = db.resetTokens.find(t => t._id === hash(String(req.body.token)) && t.expiresAt > Date.now());
     if (!token) throw badRequest('Link đã hết hạn hoặc không hợp lệ.');
     const user = db.users.find(u => u._id === token.user && u.email === token.email);
@@ -50,7 +50,7 @@ export function accountRoutes(app, { readDb, writeDb, auth, dataDir }) {
     user.passwordHash = await bcrypt.hash(req.body.newPassword, 12);
     user.tokenVersion = (user.tokenVersion || 0) + 1;
     db.resetTokens = db.resetTokens.filter(t => t.user !== user._id);
-    writeDb(db); res.json({ success: true });
+    (await writeDb(db)); res.json({ success: true });
   });
   app.post('/api/auth/resend-verification', auth(), async (req, res) => {
     requireMail();
@@ -58,13 +58,13 @@ export function accountRoutes(app, { readDb, writeDb, auth, dataDir }) {
     await issue('verificationTokens', req.user, 'verify-email', 'Xác minh email Thư Viện Số Văn Học');
     res.json({ success: true, message: 'Đã gửi email xác minh.' });
   });
-  app.get('/api/auth/verify-email/:token', (req, res) => {
-    const db = readDb();
+  app.get('/api/auth/verify-email/:token', async (req, res) => {
+    const db = (await readDb());
     const token = db.verificationTokens.find(t => t._id === hash(req.params.token) && t.expiresAt > Date.now());
     const user = token && db.users.find(u => u._id === token.user && u.email === token.email);
     if (!user) throw badRequest('Link đã hết hạn hoặc không hợp lệ.');
     user.isEmailVerified = true;
     db.verificationTokens = db.verificationTokens.filter(t => t._id !== token._id);
-    writeDb(db); res.json({ success: true, message: 'Đã xác minh email.' });
+    (await writeDb(db)); res.json({ success: true, message: 'Đã xác minh email.' });
   });
 }

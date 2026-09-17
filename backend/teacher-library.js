@@ -12,11 +12,11 @@ export function canManageMaterial(db,user,item){
 export function registerTeacherLibrary(app,{auth,readDb,writeDb}){
   const base='/api/teacher-library/:kind';
   const access=(req,res,next)=>{if(!['admin','teacher'].includes(req.user.role))fail(403,'Chỉ giáo viên được quản lý học liệu.');if(!kinds.includes(req.params.kind))fail(404,'Không tìm thấy loại học liệu.');next();};
-  const find=req=>{const db=readDb(),item=db[req.params.kind].find(x=>x._id===req.params.id&&x.isActive!==false);if(!item)fail(404,'Học liệu đã được xóa hoặc không tồn tại.');if(!canManageMaterial(db,req.user,item))fail(403,'Bạn chỉ được sửa hoặc xóa học liệu của mình và lớp mình phụ trách.');return {db,item};};
-  app.get(base,auth(),access,(req,res)=>{const db=readDb();res.json({ids:db[req.params.kind].filter(x=>x.isActive!==false&&canManageMaterial(db,req.user,x)).map(x=>x._id)});});
-  app.get(base+'/:id',auth(),access,(req,res)=>res.json({item:find(req).item}));
-  app.patch(base+'/:id',auth(),access,(req,res)=>{
-    const {db,item}=find(req),body=req.body,kind=req.params.kind;
+  const find=async req=>{const db=(await readDb()),item=db[req.params.kind].find(x=>x._id===req.params.id&&x.isActive!==false);if(!item)fail(404,'Học liệu đã được xóa hoặc không tồn tại.');if(!canManageMaterial(db,req.user,item))fail(403,'Bạn chỉ được sửa hoặc xóa học liệu của mình và lớp mình phụ trách.');return {db,item};};
+  app.get(base,auth(),access,async (req,res)=>{const db=(await readDb());res.json({ids:db[req.params.kind].filter(x=>x.isActive!==false&&canManageMaterial(db,req.user,x)).map(x=>x._id)});});
+  app.get(base+'/:id',auth(),access,async (req,res)=>res.json({item:(await find(req)).item}));
+  app.patch(base+'/:id',auth(),access,async (req,res)=>{
+    const {db,item}=(await find(req)),body=req.body,kind=req.params.kind;
     if(body.updatedAt!==(item.updatedAt||null))fail(409,'Học liệu vừa được thay đổi. Hãy đóng và mở lại để chỉnh sửa.');
     const patch={};
     for(const [key,max] of [['title',200],['description',30000],['author',200]])if(body[key]!==undefined){if(typeof body[key]!=='string'||body[key].length>max||(key==='title'&&!body[key].trim()))fail(400,'Tiêu đề, mô tả hoặc tác giả không hợp lệ.');patch[key]=body[key].trim();}
@@ -40,14 +40,14 @@ export function registerTeacherLibrary(app,{auth,readDb,writeDb}){
       if(patch.questions)patch.totalPoints=patch.questions.reduce((n,q)=>n+q.points,0);
       patch.revision=(item.revision||1)+1;
     }
-    Object.assign(item,patch,{updatedAt:new Date().toISOString()});writeDb(db);res.json({item});
+    Object.assign(item,patch,{updatedAt:new Date().toISOString()});(await writeDb(db));res.json({item});
   });
-  app.delete(base+'/:id',auth(),access,(req,res)=>{
-    const {db,item}=find(req);
+  app.delete(base+'/:id',auth(),access,async (req,res)=>{
+    const {db,item}=(await find(req));
     if(req.body.updatedAt!==(item.updatedAt||null))fail(409,'Học liệu vừa được thay đổi. Hãy tải lại trước khi xóa.');
     item.isActive=false;item.updatedAt=new Date().toISOString();item.deletedBy=req.user._id;
     // Keep attempts, results and grading records; withdraw active assignments.
     for(const a of db.assignments)if(a.kind===req.params.kind&&a.resourceId===item._id)a.isActive=false;
-    writeDb(db);res.json({success:true});
+    (await writeDb(db));res.json({success:true});
   });
 }

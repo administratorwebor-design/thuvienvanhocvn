@@ -16,6 +16,14 @@ services:
       - key: TRUST_PROXY_HOPS
         value: "1"
       - key: SEED_DEMO
+        value: "false"
+      - key: DATABASE_DRIVER
+        value: supabase
+      - key: SUPABASE_DATABASE_URL
+        sync: false
+      - key: SUPABASE_CA_CERT_PATH
+        value: backend/certs/prod-ca-2021.crt
+      - key: REQUIRE_EXISTING_DATA
         value: "true"
       - key: CLASSROOMS_ENABLED
         value: "true"

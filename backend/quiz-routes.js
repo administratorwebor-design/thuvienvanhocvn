@@ -12,23 +12,23 @@ export function registerQuizRoutes(app, { auth, admin, upload, readDb, writeDb, 
     if (previousQuiz(db, quiz, req.user)) { res.status(403).json({ error: 'Hãy hoàn thành bài kiểm tra trước.' }); return null; }
     return quiz;
   }
-  app.post('/api/quizzes/:id/start', auth(), (req, res) => {
-    const db = readDb(); const quiz = allowed(req, db, res); if (!quiz) return;
+  app.post('/api/quizzes/:id/start', auth(), async (req, res) => {
+    const db = (await readDb()); const quiz = allowed(req, db, res); if (!quiz) return;
     let attempt = db.quizAttempts.find(a => a.user === req.user._id && a.quiz === quiz._id);
     if (!attempt) {
       attempt = { _id: crypto.randomUUID(), user: req.user._id, quiz: quiz._id, startedAt: Date.now(), deadline: Date.now() + Number(quiz.duration || 30) * 60000, questions: structuredClone(quiz.questions) };
-      db.quizAttempts.push(attempt); writeDb(db);
+      db.quizAttempts.push(attempt); (await writeDb(db));
     }
     res.json({ success: true, remainingSeconds: Math.max(0, Math.ceil((attempt.deadline - Date.now()) / 1000)), deadline: attempt.deadline });
   });
-  app.post('/api/quizzes/:id/submit', auth(), (req, res) => {
-    const db = readDb(); const quiz = allowed(req, db, res); if (!quiz) return;
+  app.post('/api/quizzes/:id/submit', auth(), async (req, res) => {
+    const db = (await readDb()); const quiz = allowed(req, db, res); if (!quiz) return;
     const attempt = db.quizAttempts.find(a => a.user === req.user._id && a.quiz === quiz._id);
     if (!attempt) throw badRequest('Vui lòng bắt đầu bài kiểm tra trước khi nộp.');
     if (Date.now() > attempt.deadline + 30000) throw Object.assign(new Error('Đã quá thời gian nộp bài.'), { status: 409 });
     const graded = gradeQuiz({ ...quiz, questions: attempt.questions }, req.body.answers);
     const result = { _id: crypto.randomUUID(), user: req.user._id, quiz: { _id: quiz._id, title: quiz.title }, ...graded, submittedAt: new Date().toISOString(), createdAt: new Date().toISOString() };
-    db.quizResults.push(result); writeDb(db);
+    db.quizResults.push(result); (await writeDb(db));
     res.json({ success: true, ...result, result, message: result.isGraded ? 'Đã chấm bài kiểm tra.' : 'Đã chấm trắc nghiệm. Phần tự luận đang chờ giáo viên.' });
   });
 }
