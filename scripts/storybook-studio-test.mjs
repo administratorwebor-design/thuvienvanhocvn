@@ -37,6 +37,8 @@ try {
   await p.getByRole('button',{name:'Tiếp tục dựng sách →'}).click();await p.getByRole('button',{name:'Gemini viết lời & dựng sách'}).click();
   const frame=p.frameLocator('iframe[title="Xem thử Story Book"]');await frame.getByText('1 / 6',{exact:true}).waitFor();
   assert.equal(await frame.locator('#book img').count(),6);assert(await frame.locator('#book img').evaluateAll(images=>images.every(i=>i.complete&&i.naturalWidth>0)));
+  const verifyLayout=async()=>{const layout=await frame.locator('.story-page-inner').first().evaluate(el=>{const image=el.querySelector('.story-image'),heading=el.querySelector('.story-heading'),copy=el.querySelector('.story-copy');return {fit:getComputedStyle(image).objectFit,imageBottom:image.getBoundingClientRect().bottom,headingTop:heading.getBoundingClientRect().top,copyTop:copy.getBoundingClientRect().top,copyPosition:getComputedStyle(copy).position};});assert.equal(layout.fit,'contain');assert.equal(layout.copyPosition,'static');assert(layout.headingTop>=layout.imageBottom-1);assert(layout.copyTop>=layout.imageBottom-1);};
+  await verifyLayout();
   await frame.getByRole('button',{name:'Trang sau',exact:true}).click();await frame.getByText('2 / 6',{exact:true}).waitFor();
   await p.screenshot({path:'artifacts/storybook-studio/preview.png',fullPage:true});
   await p.setViewportSize({width:390,height:844});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.screenshot({path:'artifacts/storybook-studio/mobile.png',fullPage:true});
